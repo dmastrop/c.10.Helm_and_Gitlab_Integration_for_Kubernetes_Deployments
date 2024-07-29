@@ -1,5 +1,7 @@
 apiVersion: v2
 appVersion: "1.0.0"
+# the appVersion will be referenced as .Chart.AppVersion in deployment.yaml file as the default image tag so that the 
+# correct image can be pulled, in this case afakharany/hellonodejs:1.0.0. This image is in the values.yaml file
 description: A Hello World application written for NodeJS
 name: myapp
 type: application

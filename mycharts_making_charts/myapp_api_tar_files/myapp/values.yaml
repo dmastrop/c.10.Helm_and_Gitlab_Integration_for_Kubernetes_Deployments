@@ -11,6 +11,8 @@ replicaCount: 1
 #    Name: "myapp01"
 
 image:
+  # this is the .Values.image.repository in the deployment.yaml file.  The image tag will be supplied from the Chart.yaml 
+  # as the appVersion if it is not present. This will allow the pulling of the proper image. In this case 1.0.0
   repository: afakharany/hellonodejs
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
@@ -43,7 +45,8 @@ securityContext: {}
   # runAsUser: 1000
 
 service:
-  type: ClusterIP
+  type: LoadBalancer
+  #type: ClusterIP
   port: 80
 
 ingress:

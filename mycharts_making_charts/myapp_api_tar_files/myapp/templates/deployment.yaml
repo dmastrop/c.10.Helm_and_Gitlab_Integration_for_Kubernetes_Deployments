@@ -31,6 +31,10 @@ spec:
         - name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
+  # for the image the .Values.image.repository value must be supplied from the  values.yaml file
+  # for the .Vaues.image.tag if this is blank this will get the value from the Chart.yaml file. 
+  # Thus the Chart.yaml is the only place that the appVersion needs to be updated. This is designated
+  # as .Chart.AppVersion below.
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
