@@ -7,3 +7,6 @@ Is this a new installation? {{ .Release.IsInstall }}
 Is this an upgrade? {{ .Release.IsUpgrade }}
 The version of kubernetes running on this cluster is
 {{ .Capabilities.KubeVersion }}
+
+resources:
+  {{- toYaml .Values.resources | nindent 2 }}
