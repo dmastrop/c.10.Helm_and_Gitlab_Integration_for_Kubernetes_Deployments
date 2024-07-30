@@ -34,7 +34,9 @@ spec:
   # for the image the .Values.image.repository value must be supplied from the  values.yaml file
   # for the .Vaues.image.tag if this is blank this will get the value from the Chart.yaml file. 
   # Thus the Chart.yaml is the only place that the appVersion needs to be updated. This is designated
-  # as .Chart.AppVersion below.
+  # as .Chart.AppVersion below. NOTE that the Chart.yaml appVersion is now 2.0.0. The values.yaml file with the
+  # .Values.image.repository is the same afakharany/hellonodejs.  The full image name is
+  # afakharany/hellonodejs:2.0.0
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           volumeMounts:

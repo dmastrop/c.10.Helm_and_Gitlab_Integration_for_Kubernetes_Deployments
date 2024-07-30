@@ -1,8 +1,40 @@
 apiVersion: v2
+
+
+
+# This is the version number of the application being deployed. This version number should be
+# incremented each time you make changes to the application. Versions are not expected to
+# follow Semantic Versioning. They should reflect the version the application is using.
+# It is recommended to use it with quotes.
 appVersion: "2.0.0"
 # the appVersion will be referenced as .Chart.AppVersion in deployment.yaml file as the default image tag so that the 
-# correct image can be pulled, in this case afakharany/hellonodejs:1.0.0. This image is in the values.yaml file
+# correct image can be pulled, in this case afakharany/hellonodejs:2.0.0. This image is in the values.yaml file
+
+
 description: A weather application written for NodeJS
+
+
+
 name: myapp
+
+
+
+
+# A chart can be either an 'application' or a 'library' chart.
+#
+# Application charts are a collection of templates that can be packaged into versioned archives
+# to be deployed.
+#
+# Library charts provide useful utilities or functions for the chart developer. They're included as
+# a dependency of application charts to inject those utilities and functions into the rendering
+# pipeline. Library charts do not define any templates and therefore cannot be deployed.  
 type: application
+
+
+
+# This is the chart version. This version number should be incremented each time you make changes
+# to the chart and its templates, including the app version.
+# Versions are expected to follow Semantic Versioning (https://semver.org/)
+# The appVersion has changed to 2.0.0 for this weather api modification and so the chart version should incremment from 
+# 0.1.0 to 0.1.1  
 version: 0.1.1
