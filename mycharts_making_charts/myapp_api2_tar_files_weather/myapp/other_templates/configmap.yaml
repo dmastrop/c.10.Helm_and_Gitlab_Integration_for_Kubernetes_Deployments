@@ -9,11 +9,11 @@ data:
 # If have different file type can use config/*.json and config/*.ini and so on......
 
 # {{ .Files.Get "default.json" | indent 4 }}
-# the files contents cna be placed here or better do the following above and put the default.json one directory up with Chart.yaml
+# METHOD 1: the files contents cna be placed here or better do the following above and put the default.json one directory up with Chart.yaml
 # NOTE that .Files.Get works off of the root directory of the helm chart so one directory up with the Chart.yaml is where 
 # the default.json file should be placed; not in the templates directory
 #
-#  ALTERNATE mehtod for small config json files is to put the entire contents in this configmap.yaml file like this:
+#  METHOD 0: ALTERNATE mehtod for small config json files is to put the entire contents in this configmap.yaml file like this:
 #  apiVersion: v1
 #  kind: ConfigMap
 #  metadata:
