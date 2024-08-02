@@ -1,1 +1,120 @@
-Helm: Kubernetes package manager development
+# Helm: Kubernetes package manager development
+
+
+
+# Troubleshooting
+
+## The APIKEY quota exhaustion issue
+
+NodePort lockdown did not resolve the issue. It ended up being an issue with the liveliness and readiness probes. For now committed change to deployment.yaml template in the helm myapp 2.0.0 chart, commenting out the liveiness and readiness probes completely. There is still a single 400 invalid per valid 200 browser request to the API and this may be an application issue.  Without traces or further debugs it will be difficult to troublshoot further.
+
+
+Notes are below:
+
+I finally found the source of this APIKEY erosion issue.   The troubleshooting is below.
+Summary: It is the heath probes and liveliness probes in the deployment.yaml file.
+
+Once i edited the path to /paris (or any /<city> the URL became valid and the API logs show 200s. 
+
+I just need to find out how to increase the healthcheck interval massively so that the APIKEYs don't get used up.
+For now I have commented out the liveliness probe and readiness probe in deployment.yaml
+
+This addressed most of the problem. I still see one 400 per 200 valid request in the API logs (see below)
+
+
+
+Troubleshooting:
+
+
+
+I tried the NodePort. I tested NodePort with myapp 1.0.0 initally just to make sure I am using it correctly. I added the security group rule to the kops SG for the node to let the traffic through to NodeIP:NodePort and it works great
+
+
+
+I next deployed NodePort on myapp2.0.0 with the weathermap APIKEY.
+
+
+
+I am seeing the same issue. Usage of the APIKEY without me sending any traffic below.  Recall from first post above that 106 were used. This morning still at 106 since I have no myapp 2.0.0 running.
+
+
+
+Test1:
+
+I started the myapp2.0.0 just now with the NodePort and the APIKEY usage is going back up with 400 invalid request error. It went up to 120 in about 5 seconds (see screenshots below). All 400 malformed client requests. And I am not sending any traffic.
+
+
+
+Test2:
+
+Next with myapp 2.0.0 I locked down the Security Group port to just the single NodePort and I still see the same erosion of the quote on APIKEY.
+
+
+
+Test3:
+
+Next with myapp 2.0.0 i further locked down the SG on the node to the source ip of my mac browser/PC.  I still see the same erosion  Same 400 invalid response in the logs.
+
+
+
+Conclusion:
+
+It must be healthchecks or something going on with the app.
+
+
+
+I see this in the deployment.yaml
+
+
+
+ports:
+
+            - name: http
+
+              containerPort: 80
+
+              protocol: TCP
+
+          livenessProbe:
+
+            httpGet:
+
+              path: /
+
+              port: http
+
+          readinessProbe:
+
+            httpGet:
+
+              path: /
+
+              port: http
+
+          resources:
+
+            {{- toYaml .Values.resources | nindent 12 }}
+
+
+
+Changed the path from /  to /paris and the API logs now show 200s.
+
+
+
+For now i disabled the liveliness and readiness probes in deployment.yaml, that i can run the myapp2.0.0 without APIKEY quota exhaustion.
+
+
+
+This prevents most of the APIKEY erosion and I can now leave the myapp 2.0.0 up for extended period of time for testing.
+
+
+
+There is still one 400 invalid request per valid browser request from my mac even with liveliness and readiness probes completely disabled. This might be an application/code issue with the myapp but i can't determine exactly what without packet traces or more debugs on the backend app call to the API.
+
+
+
+The app itself is working. If i use my browser i see the one 200 OK response in the logs below with the most secure setting Test3 above.
+
+
+
+You can see the one 400 for each valid 200 browser request.(note the timestamp)
