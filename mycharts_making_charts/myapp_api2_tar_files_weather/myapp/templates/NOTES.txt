@@ -18,3 +18,24 @@ The service type is NodePort
 {{ else }}
 The service type is LoadBalancer
 {{- end }}
+
+{{- if ne .Values.service.type "ClusterIP" -}}
+The service type is not ClusterIP
+{{- end }}
+
+{{- if and (eq .Values.service.type "NodePort") .Values.ingress.enabled -}}
+The service type is NodePort and ingress is enabled
+{{- end }}
+
+{{- if or (eq .Values.service.type "NodePort") .Values.ingress.enabled -}}
+The service type is NodePort OR ingress is enabled
+{{- end }}
+
+
+{{- if lt (.Capabilities.KubeVersion.Minor | int)  23 -}}
+{{- fail "This chart requires Kubernetes version 1.23 or higher" -}}
+{{- end }}
+
+{{- if gt (.Capabilities.KubeVersion.Minor | int) 23 -}}
+The kubernetes version is greater than 1.23
+{{- end }}

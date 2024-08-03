@@ -49,6 +49,7 @@ spec:
                 secretKeyRef:
                   name: {{ include "myapp.fullname" . }}
                   key: APIKEY
+          # COMMENT out the liveness and readiness probes for now. They are causing APIKEY exhaustion and quota erosion.
           ports:
             - name: http
               containerPort: 80
