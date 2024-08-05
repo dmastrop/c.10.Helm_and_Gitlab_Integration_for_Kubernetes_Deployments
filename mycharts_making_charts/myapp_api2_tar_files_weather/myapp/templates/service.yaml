@@ -1,3 +1,4 @@
+#{{- $ports := .Values.service.ports -}}
 apiVersion: v1
 kind: Service
 metadata:
@@ -9,6 +10,7 @@ metadata:
     # To just get the port number add the .number 
   annotations:
     mainPort: "{{ (index .Values.service.ports 0).number }}"
+    #mainPort: "{{ (index $ports 0).number }}"
 spec:
   type: {{ .Values.service.type }}
 
@@ -32,6 +34,7 @@ spec:
   # The same applies to the .targetPort and .name nomenclature.
   ports:
   {{- range .Values.service.ports }}
+  #{{- range $ports }}
     - port: {{ .number }}
       targetPort: {{ .targetPort }}
       protocol: TCP
