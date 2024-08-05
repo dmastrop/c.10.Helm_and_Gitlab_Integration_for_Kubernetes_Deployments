@@ -1,5 +1,4 @@
 apiVersion: v1
-#{{- $ports := .Values.service.ports -}}
 kind: Service
 metadata:
   name: {{ include "myapp.fullname" . }}
@@ -10,7 +9,6 @@ metadata:
     # To just get the port number add the .number 
   annotations:
     mainPort: "{{ (index .Values.service.ports 0).number }}"
-    #mainPort: "{{ (index $ports 0).number }}"
 spec:
   type: {{ .Values.service.type }}
 
@@ -32,7 +30,6 @@ spec:
   # .number is a child of the .Values.service.ports range so we do not have to retype the whole .Values.service.ports.number to
   # reference the port number in the values.yaml file and iterate through the list.
   # The same applies to the .targetPort and .name nomenclature.
-  #   #{{- range $ports }}
   ports:
   {{- range .Values.service.ports }}
     - port: {{ .number }}
