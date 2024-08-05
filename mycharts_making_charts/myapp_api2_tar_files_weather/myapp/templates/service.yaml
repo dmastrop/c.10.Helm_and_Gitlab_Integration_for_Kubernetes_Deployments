@@ -28,9 +28,9 @@ spec:
   ports:
   {{- range .Values.service.ports }}
     - port: {{ .number }}
-    - targetPort: {{ .targetPort }}
-    - protocol: TCP
-    - name: {{ .name }}
+      targetPort: {{ .targetPort }}
+      protocol: TCP
+      name: {{ .name }}
   {{- end }}
 
   selector:
