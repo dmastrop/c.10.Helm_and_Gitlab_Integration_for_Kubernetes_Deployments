@@ -4,6 +4,11 @@ metadata:
   name: {{ include "myapp.fullname" . }}
   labels:
     {{- include "myapp.labels" . | nindent 4 }}
+    # the annotation will get the name, the targetPort and the port number
+    # The 0 is the index number to the first service http
+    # To just get the port number add the .number 
+  annotations:
+    mainPort: "{{ (index .Values.service.ports 0).number }}"
 spec:
   type: {{ .Values.service.type }}
 
