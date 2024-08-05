@@ -6,13 +6,32 @@ metadata:
     {{- include "myapp.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
+
+  # the configuration below is multiport but not efficent. Replace this by utlizing the list in values.yaml file
+  # (see below)
+  # ports:
+  #   - port: {{ .Values.service.port }}
+  #     targetPort: http
+  #     protocol: TCP
+  #     name: http
+  #   - port: {{ .Values.service.ssl_port }}
+  #     targetPort: {{ .Values.service.ssl_target_port }}
+  #     name: {{ Values.service.ssl_name }}
+  #     protocol: TCP
+
+  # this more efficient configuration will iterate through the list configuration in the values.yaml file.
+  # range is a helm function that is used to loop over lists or dictionaries. 
+  # A dictionary in golang is called a map
+  # .number is a child of the .Values.service.ports range so we do not have to retype the whole .Values.service.ports.number to
+  # reference the port number in the values.yaml file and iterate through the list.
+  # The same applies to the .targetPort and .name nomenclature.
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: http
-      protocol: TCP
-      name: http
-    - port: {{ .Values.service.ssl_port }}
-      targetPort: {{ .Values.service.ssl_target_port }}
-      protocol: {{ Values.service.ssl_name }}
+  {{- range .Values.service.ports -}}
+    - port: {{ .number }}
+    - targetPort: {{ .targetPort }}
+    - protocol: TCP
+    - name: {{ .name }}
+  {{- end }}
+
   selector:
     {{- include "myapp.selectorLabels" . | nindent 4 }}

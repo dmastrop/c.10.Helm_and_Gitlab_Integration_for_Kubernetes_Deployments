@@ -48,10 +48,21 @@ service:
   type: NodePort
   #type: LoadBalancer
   #type: ClusterIP
-  port: 80
-  ssl_port: 443
-  ssl_target_port: 443
-  ssl_name: https
+
+  # port: 80
+  # ssl_port: 443
+  # ssl_target_port: 443
+  # ssl_name: https
+
+  # Create a list for multi-port service configuration
+  # this simplifies configuration so that we no longer have to prefix the parameters to make them unique.
+  ports:
+    - number: 80
+      targetPort: http
+      name: http
+    - number: 443
+      targetPort: https
+      name: https
 
 ingress:
   enabled: false
