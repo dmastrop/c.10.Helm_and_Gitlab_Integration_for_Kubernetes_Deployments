@@ -16,7 +16,7 @@ spec:
   #     name: http
   #   - port: {{ .Values.service.ssl_port }}
   #     targetPort: {{ .Values.service.ssl_target_port }}
-  #     name: {{ Values.service.ssl_name }}
+  #     name: {{ .Values.service.ssl_name }}
   #     protocol: TCP
 
   # this more efficient configuration will iterate through the list configuration in the values.yaml file.
@@ -26,7 +26,7 @@ spec:
   # reference the port number in the values.yaml file and iterate through the list.
   # The same applies to the .targetPort and .name nomenclature.
   ports:
-  {{- range .Values.service.ports -}}
+  {{- range .Values.service.ports }}
     - port: {{ .number }}
     - targetPort: {{ .targetPort }}
     - protocol: TCP
