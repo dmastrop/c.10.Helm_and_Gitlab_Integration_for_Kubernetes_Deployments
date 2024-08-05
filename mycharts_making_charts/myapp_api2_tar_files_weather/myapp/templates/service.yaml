@@ -1,5 +1,5 @@
-#{{- $ports := .Values.service.ports -}}
 apiVersion: v1
+#{{- $ports := .Values.service.ports -}}
 kind: Service
 metadata:
   name: {{ include "myapp.fullname" . }}
