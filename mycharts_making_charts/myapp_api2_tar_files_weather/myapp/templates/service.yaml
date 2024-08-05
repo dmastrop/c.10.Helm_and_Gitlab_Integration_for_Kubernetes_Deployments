@@ -10,7 +10,7 @@ metadata:
     # To just get the port number add the .number 
   # for annotations replace the mainPort: "{{ (index .Values.service.ports 0).number }}" with mainPort: "{{ (index $ports 0).number }}"
   annotations:
-    mainPort: "{{ (index .Values.service.ports 0).number }}"
+    mainPort: "{{ (index $ports 0).number }}"
 spec:
   type: {{ .Values.service.type }}
 
