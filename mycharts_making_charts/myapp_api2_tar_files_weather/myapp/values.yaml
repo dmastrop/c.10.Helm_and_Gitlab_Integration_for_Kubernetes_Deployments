@@ -63,6 +63,12 @@ service:
     - number: 443
       targetPort: https
       name: https
+    - number: 8080
+      targetPort: 8080
+      name: admin
+    - number: 8008
+      targetPort: 8008
+      name: ops
 
 ingress:
   enabled: false
