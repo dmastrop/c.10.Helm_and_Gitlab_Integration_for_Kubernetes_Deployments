@@ -1,0 +1,30 @@
+apiVersion: v2
+appVersion: "2.1.0"
+
+# the dependencies block is for the redis server that will provide caching for API calls.
+# need to specify the version of the redis server
+# ^15.x is greater than or equal to 15.0.0 and less than 16.0.0
+# I am not sure if this is still available. Try it out. If not use the version 16 as shown in 
+# helm search repo "redis" --versions    version: ~15.3.x will cover 15.3.0  and less than 15.4.0
+# right now 16.11.2 through 16.13.2 are in the repo.
+# ITERATION 1
+dependencies:
+  - name: redis
+    version: ^15.x
+    repository: https://charts.bitnami.com/bitnami
+
+# ITERATION 2:
+# dependencies:
+# - import-values:
+#   - child: master
+#     parent: imported
+#   name: redis
+#   repository: https://charts.bitnami.com/bitnami
+#   version: ^15.x
+
+
+description: A weather application written for NodeJS with added redis caching for API calls
+name: myapp
+type: application
+# this is the chart version
+version: 0.2.0
