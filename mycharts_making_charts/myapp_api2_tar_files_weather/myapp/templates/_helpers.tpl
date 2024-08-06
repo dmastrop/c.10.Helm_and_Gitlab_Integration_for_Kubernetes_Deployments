@@ -34,6 +34,7 @@ The final fully qualified name myapp.fullname is test-myapp
 
 {{/*
 Create chart name and version as used by the chart label.
+replace function will replace any + in the version with underscores for readability
 */}}
 {{- define "myapp.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
@@ -41,6 +42,7 @@ Create chart name and version as used by the chart label.
 
 {{/*
 Common labels
+myapp.lables is the name and version of the chart and the generation service which will always be helm
 */}}
 {{- define "myapp.labels" -}}
 helm.sh/chart: {{ include "myapp.chart" . }}
