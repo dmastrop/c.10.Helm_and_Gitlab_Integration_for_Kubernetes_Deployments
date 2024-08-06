@@ -12,9 +12,12 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 If release name contains chart name it will be used as a full name.
 DM: if no fullnameOverride specified in -set then check the .Values.nameOverride. NOTE that $name will be either the .Chart.Name
 or the .Values.nameOverride if it is present.
-If that name is contained in the .Release.Name then can use that as the fully qualified name
+If that name (for example Chart.Name is contained in the .Release.Name then can use the Release.Name as the fully qualified name
 Contains function example: .Release.Name = myapp01 and $name = myapp then the function returns true since myapp
-is a subset of myapp01
+is a subset of myapp01.  myapp01 will be used at the myapp.fullname 
+If this is not true then use Release.Name-$name as the fully qualified myapp.fullname
+Example: the release name is test: helm install test . --dry-run, and the $name is myapp
+The final fully qualified name myapp.fullname is test-myapp
 */}}
 {{- define "myapp.fullname" -}}
   {{- if .Values.fullnameOverride }}
