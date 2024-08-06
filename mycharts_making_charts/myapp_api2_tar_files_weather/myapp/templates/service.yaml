@@ -48,6 +48,7 @@ spec:
   {{- range $key, $value := $ports }}
   {{- if and (eq ($value.number | int) 8080) (eq $value.name "admin") }}
   {{- fail "Please use another port number other than 8080 for the admin port" }}
+  {{- end }}
     - port: {{ .number }}
       targetPort: {{ .targetPort }}
       protocol: TCP
