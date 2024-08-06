@@ -10,7 +10,8 @@ appVersion: "2.1.0"
 # ITERATION 1
 dependencies:
   - name: redis
-    version: ^15.x
+    #version: ^15.x
+    version: 16.13.2
     repository: https://charts.bitnami.com/bitnami
 
 # ITERATION 2:
