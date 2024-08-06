@@ -37,12 +37,17 @@ spec:
   # The same applies to the .targetPort and .name nomenclature.
   {{- /*
   # replace the {{- range .Values.service.ports }} with {{- range $ports }}
+  # define the ports variable $ports at the top of this service.yaml file.
   */}}
   {{- /*
   # replace the {{- range $ports }} with {{- range $key, $value := $ports }}
   # then add this if and AND condition {{- if and (eq ($value.number | int) 8080) (eq $value.name "admin") }}
   # if both the value.number is 8080 AND the value.name is admin then abort and fail the range loop iteration through the list
   # and post the message below
+  # NOTE that the name key and value in the range command are not fixed. These can be anything and they are simply used
+  # to iterate over all of the objects in the port array.
+  # When iterating over a map (dictionary), we use the $k and $v variables (names are not important), 
+  # which are populated with the key and value of the item in the map.
   */}}
   ports:
   {{- range $key, $value := $ports }}
