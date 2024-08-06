@@ -45,3 +45,6 @@ The service type is NodePort OR ingress is enabled
 The kubernetes version is greater than 1.23
 {{- end }}
 {{- "\n" }}
+
+{{ include "myapp.name" . }}
+The myapp.name is the chart name by default
