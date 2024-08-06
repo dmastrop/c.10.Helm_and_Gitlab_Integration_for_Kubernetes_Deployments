@@ -58,3 +58,5 @@ The logic is .Release.Name but if the $name is not a subset of the .Release.Name
 as the fully  qualified name
 Example: the release name is test: helm install test . --dry-run, and the $name is myapp
 In the example the  final fully qualified name myapp.fullname would be test-myapp
+
+{{include "myapp.chart" . }}
