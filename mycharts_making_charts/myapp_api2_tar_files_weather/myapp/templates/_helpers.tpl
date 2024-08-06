@@ -73,6 +73,7 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 
 {{/*
 Create the name of the service account to use
+If .Values.serviceAccount.name is not specified it iwll use myapp.fullname or the fully qualified name
 */}}
 {{- define "myapp.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
