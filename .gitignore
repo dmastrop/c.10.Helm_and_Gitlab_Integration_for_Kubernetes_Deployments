@@ -1,2 +1,4 @@
 keys_and_credentials
 secret.yaml
+node_modules
+package-lock.json

@@ -2,6 +2,26 @@
 
 
 
+## APP versions and Chart versions
+
+APP version 1.0 Chart version 0.1.0 with hello world 
+APP version 2.0 Chart version 0.1.1 with APIKEY backend weatherapp api
+APP version 2.1 Chart version 0.2.0 with redis
+
+
+
+ubuntu@ip-172-31-21-52:~/course10_helm_with_kops/mycharts_making_charts$ ls -la
+total 40
+drwxrwxr-x 8 ubuntu ubuntu 4096 Aug  6 20:18 .
+drwxrwxr-x 5 ubuntu ubuntu 4096 Aug  2 22:39 ..
+-rw-rw-r-- 1 ubuntu ubuntu 6148 Jul 30 02:17 .DS_Store
+drwxr-xr-x 4 ubuntu ubuntu 4096 Jul 29 03:04 myapp
+drwxrwxr-x 4 ubuntu ubuntu 4096 Jul 29 20:47 myapp_0.1.0_api1_tar_files_hello_world
+drwxr-xr-x 4 ubuntu ubuntu 4096 Jul 30 21:51 myapp_0.1.1_api2_tar_files_weather
+drwxr-xr-x 4 ubuntu ubuntu 4096 Aug  2 00:45 myapp_0.1.1_api2_test_weather
+drwxrwxr-x 2 ubuntu ubuntu 4096 Aug  6 20:11 myapp_0.2.0_api21_tar_files_weather_redis
+drwxr-xr-x 4 ubuntu ubuntu 4096 Jul 29 22:16 playground
+
 # Troubleshooting
 
 ## The APIKEY quota exhaustion issue
