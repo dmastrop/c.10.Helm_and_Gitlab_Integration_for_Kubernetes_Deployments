@@ -60,3 +60,4 @@ Example: the release name is test: helm install test . --dry-run, and the $name 
 In the example the  final fully qualified name myapp.fullname would be test-myapp
 
 {{include "myapp.chart" . }}
+This is myapp.chart and is the chart name and version as used by teh chart label.
