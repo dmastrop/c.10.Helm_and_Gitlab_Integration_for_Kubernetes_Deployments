@@ -22,9 +22,9 @@ drwxr-xr-x 4 ubuntu ubuntu 4096 Aug  2 00:45 myapp_0.1.1_api2_test_weather
 drwxrwxr-x 2 ubuntu ubuntu 4096 Aug  6 20:11 myapp_0.2.0_api21_tar_files_weather_redis
 drwxr-xr-x 4 ubuntu ubuntu 4096 Jul 29 22:16 playground
 
-# Troubleshooting
+## Troubleshooting
 
-## The APIKEY quota exhaustion issue
+### The APIKEY quota exhaustion issue
 
 NodePort lockdown did not resolve the issue. It ended up being an issue with the liveliness and readiness probes. For now committed change to deployment.yaml template in the helm myapp 2.0.0 chart, commenting out the liveiness and readiness probes completely. There is still a single 400 invalid per valid 200 browser request to the API and this may be an application issue.  Without traces or further debugs it will be difficult to troublshoot further.
 

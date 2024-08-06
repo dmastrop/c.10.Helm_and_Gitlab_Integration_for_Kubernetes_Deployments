@@ -7,10 +7,12 @@ appVersion: "2.1.0"
 # I am not sure if this is still available. Try it out. If not use the version 16 as shown in 
 # helm search repo "redis" --versions    version: ~15.3.x will cover 15.3.0  and less than 15.4.0
 # right now 16.11.2 through 16.13.2 are in the repo.
+# NOTE that the 16 chart versions are APP version 6.2.7 which is close to the 6.2.5 that original myapp was built for
 # ITERATION 1
 dependencies:
   - name: redis
-    version: ^15.x
+    #version: ^15.x
+    version: 16.13.2
     repository: https://charts.bitnami.com/bitnami
 
 # ITERATION 2:
