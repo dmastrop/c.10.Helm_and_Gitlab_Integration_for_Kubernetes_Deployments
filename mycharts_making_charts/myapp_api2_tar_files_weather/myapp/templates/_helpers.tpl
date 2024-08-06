@@ -82,3 +82,23 @@ If .Values.serviceAccount.name is not specified it iwll use myapp.fullname or th
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+
+{{/*
+Custom named template: Change the image pull policy according to the type of envronment
+For production use Always to force authentiation for all new containers
+For development can use ifNotPresent
+If the environment is not in .Values.environment then use default "production"
+If the environment is not production then use IfNotPresent (development)
+If it is a production environment (by default this is set) the else to Always for the imagePullPolicy
+for authentication/security reasons.
+IfNotPresent will only be used if explicitly set to development. By default it will be Always imagePullPolicy.
+*/}}
+{{- define "myapp.imagePullPolicy" -}}
+    {{- $environment := default "production" .Values.environment }}
+    {{- if not (eq $environment "production") }}
+        {{- "IfNotPresent" }}
+    {{- else }}
+        {{- "Always" }}
+    {{- end }}
+{{- end }}    
