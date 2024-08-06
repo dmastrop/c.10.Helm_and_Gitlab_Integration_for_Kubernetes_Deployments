@@ -89,6 +89,10 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+# this can be set in the --set command on command line as --set redis.auth.enabled=false or can set it here.
+# This is for development so we can bypass the password authentication for the redis chart to be accessed by the parent
+# In production the parent will need a password to access the child redis chart.
 redis:
   auth:
     enabled: false
