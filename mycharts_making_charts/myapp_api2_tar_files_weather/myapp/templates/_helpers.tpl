@@ -1,5 +1,6 @@
 {{/*
 Expand the name of the chart.
+myapp.name is the default chart name .Chart.Name or if the nameOverride is -set command then use that.
 */}}
 {{- define "myapp.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
@@ -11,7 +12,7 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 If release name contains chart name it will be used as a full name.
 DM: if no fullnameOverride specified in -set then check the .Values.nameOverride. NOTE that $name will be either the .Chart.Name
 or the .Values.nameOverride if it is present.
-If that nmae is contained in the .Release.Name then can use that as the fully qualified name
+If that name is contained in the .Release.Name then can use that as the fully qualified name
 Contains function example: .Release.Name = myapp01 and $name = myapp then the function returns true since myapp
 is a subset of myapp01
 */}}
