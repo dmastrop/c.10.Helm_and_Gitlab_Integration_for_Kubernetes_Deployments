@@ -47,4 +47,4 @@ The kubernetes version is greater than 1.23
 {{- "\n" }}
 
 {{ include "myapp.name" . }}
-The myapp.name is the chart name by default
+Above is the myapp.name and it is the chart name by default
