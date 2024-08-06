@@ -43,6 +43,15 @@ replace function will replace any + in the version with underscores for readabil
 {{/*
 Common labels
 myapp.lables is the name and version of the chart and the generation service which will always be helm
+Note that selectorLabels is another named chart and it is injected into the myapp.labels block below.
+The complete output of both of these blocks will look somtning like this: for a helm install test . --dry-run
+helm.sh/chart: myapp-0.1.1
+app.kubernetes.io/name: myapp
+app.kubernetes.io/instance: test
+app.kubernetes.io/version: "2.0.0"
+app.kubernetes.io/managed-by: Helm
+
+All of these together will uniquely identify an deployed app for a given service in the helm list.
 */}}
 {{- define "myapp.labels" -}}
 helm.sh/chart: {{ include "myapp.chart" . }}
@@ -55,6 +64,7 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 
 {{/*
 Selector labels
+This is injected into the myapp.labels named template above
 */}}
 {{- define "myapp.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "myapp.name" . }}
