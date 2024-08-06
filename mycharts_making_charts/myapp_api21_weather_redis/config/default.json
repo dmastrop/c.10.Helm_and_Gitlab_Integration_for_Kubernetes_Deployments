@@ -1,0 +1,12 @@
+{
+    "network": {
+        "port": "80"
+    },
+    "environment": {
+        "SSL": false
+    },
+    "redis": {
+        "server": "localhost",
+        "port": "6379"
+    }
+}
