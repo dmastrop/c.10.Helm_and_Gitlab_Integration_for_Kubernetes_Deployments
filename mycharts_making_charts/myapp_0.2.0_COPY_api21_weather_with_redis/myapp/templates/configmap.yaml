@@ -2,6 +2,20 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ include "myapp.fullname" .}}
+
+# this has been modified. Originally it was a Files.Get for the default.json file 
+# we need to add redis component to this.  The server will be dynamically named relative to the .Release.Name
 data:
   default.json: |
-{{ .Files.Get "default.json" | indent 4 }}
+    {
+      "network": {
+        "port": "80"
+      },
+      "environment": {
+        "SSL": false
+      },
+      "redis": {
+        "server": "{{ .Release.Name }}-redis-master",
+        "port": "6379"
+      }
+    }
