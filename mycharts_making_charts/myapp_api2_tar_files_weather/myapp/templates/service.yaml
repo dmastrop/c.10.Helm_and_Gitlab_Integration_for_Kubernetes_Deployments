@@ -38,9 +38,16 @@ spec:
   {{- /*
   # replace the {{- range .Values.service.ports }} with {{- range $ports }}
   */}}
-
+  {{- /*
+  # replace the {{- range $ports }} with {{- range $key, $value := $ports }}
+  # then add this if and AND condition {{- if and (eq ($value.number | int) 8080) (eq $value.name "admin") }}
+  # if both the value.number is 8080 AND the value.name is admin then abort and fail the range loop iteration through the list
+  # and post the message below
+  */}}
   ports:
-  {{- range $ports }}
+  {{- range $key, $value := $ports }}
+  {{- if and (eq ($value.number | int) 8080) (eq $value.name "admin") }}
+  {{- fail "Please use another port number other than 8080 for the admin port" }}
     - port: {{ .number }}
       targetPort: {{ .targetPort }}
       protocol: TCP
