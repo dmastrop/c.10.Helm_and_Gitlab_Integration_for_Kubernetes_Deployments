@@ -62,5 +62,5 @@ In the example the  final fully qualified name myapp.fullname would be test-myap
 {{include "myapp.chart" . }}
 This is myapp.chart and is the chart name and version as used by teh chart label.
 
-{{inclue "myapp.labels" . }}
+{{include "myapp.labels" . }}
 This is the myapp.lables and is the name and version of the chart and the generation service (always Helm)
