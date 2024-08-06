@@ -38,7 +38,9 @@ spec:
   # .Values.image.repository is the same afakharany/hellonodejs.  The full image name is
   # afakharany/hellonodejs:2.0.0
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          #imagePullPolicy: {{ .Values.image.pullPolicy }}
+          # replace this with our custom named template in _helpers.tpl for dev and production imagePullPolicy
+          imagePullPolicy: {{ include "myapp.imagePullPolicy" . }}
           volumeMounts:
             - name: config
               mountPath: /app/config/default.json

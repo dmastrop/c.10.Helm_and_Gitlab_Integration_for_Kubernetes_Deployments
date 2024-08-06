@@ -93,6 +93,9 @@ If the environment is not production then use IfNotPresent (development)
 If it is a production environment (by default this is set) the else to Always for the imagePullPolicy
 for authentication/security reasons.
 IfNotPresent will only be used if explicitly set to development. By default it will be Always imagePullPolicy.
+NOTE that .Values.environment variable has been added to the values.yaml file and removed the pullPolicy
+In deployment.yaml replaced the .Values.image.pullPolicy with the imagePullPolicy: {{ include "myapp.imagePullPolicy" . }}
+to this custom named template below.
 */}}
 {{- define "myapp.imagePullPolicy" -}}
     {{- $environment := default "production" .Values.environment }}

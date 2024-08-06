@@ -14,9 +14,13 @@ image:
   # this is the .Values.image.repository in the deployment.yaml file.  The image tag will be supplied from the Chart.yaml 
   # as the appVersion if it is not present. This will allow the pulling of the proper image. In this case 1.0.0
   repository: afakharany/hellonodejs
-  pullPolicy: IfNotPresent
+  #comment out the pullPolicy as we are now using custom named template in _helpers.tpl file
+  #pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
+
+  # environment is production or development. This is used in the imagePullPolicy custom named teplate in _helpers.tpl file
+  environment: ""
 
 imagePullSecrets: []
 nameOverride: ""
