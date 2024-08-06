@@ -64,3 +64,6 @@ This is myapp.chart and is the chart name and version as used by teh chart label
 
 {{include "myapp.labels" . }}
 This is the myapp.labels and is the name and version of the chart and the generation service (always Helm)
+
+{{include "myapp.serviceAccountName" }}
+This is the myapp.serviceAccountName 
