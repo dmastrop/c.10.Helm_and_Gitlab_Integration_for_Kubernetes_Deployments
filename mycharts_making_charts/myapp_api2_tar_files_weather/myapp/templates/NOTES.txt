@@ -49,6 +49,8 @@ The kubernetes version is greater than 1.23
 {{ include "myapp.name" . }}
 Above is the myapp.name and it is the chart name by default
 _helpers.tpl nameOverride will override this name with the override name
+This is the myapp.name in the _helpers.tpl file
 
 {{include "myapp.fullname" . }}
 Above is the fully qualified app name used by kubernetes
+This is myapp.fullname in the _helpers.tpl file
