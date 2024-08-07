@@ -6,10 +6,33 @@ apiVersion: v2
 # incremented each time you make changes to the application. Versions are not expected to
 # follow Semantic Versioning. They should reflect the version the application is using.
 # It is recommended to use it with quotes.
-appVersion: "2.0.0"
+appVersion: "2.1.0"
 # the appVersion will be referenced as .Chart.AppVersion in deployment.yaml file as the default image tag so that the 
 # correct image can be pulled, in this case afakharany/hellonodejs:2.0.0. This image is in the values.yaml file
 
+
+
+# the dependencies block is for the redis server that will provide caching for API calls.
+# need to specify the version of the redis server
+# ^15.x is greater than or equal to 15.0.0 and less than 16.0.0
+# I am not sure if this is still available. Try it out. If not use the version 16 as shown in 
+# helm search repo "redis" --versions    version: ~15.3.x will cover 15.3.0  and less than 15.4.0
+# right now 16.11.2 through 16.13.2 are in the repo.
+# ITERATION 1
+dependencies:
+  - name: redis
+    #version: ^15.x
+    version: 16.13.2
+    repository: https://charts.bitnami.com/bitnami
+
+# ITERATION 2:
+# dependencies:
+# - import-values:
+#   - child: master
+#     parent: imported
+#   name: redis
+#   repository: https://charts.bitnami.com/bitnami
+#   version: ^15.x
 
 description: A weather application written for NodeJS
 
@@ -37,4 +60,4 @@ type: application
 # Versions are expected to follow Semantic Versioning (https://semver.org/)
 # The appVersion has changed to 2.0.0 for this weather api modification and so the chart version should incremment from 
 # 0.1.0 to 0.1.1  
-version: 0.1.1
+version: 0.2.0
