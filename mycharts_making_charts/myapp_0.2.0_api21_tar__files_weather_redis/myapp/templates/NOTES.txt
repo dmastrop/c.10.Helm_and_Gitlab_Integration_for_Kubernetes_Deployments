@@ -1,0 +1,70 @@
+The name of this chart is {{ .Chart.Name }},
+its version is {{ .Chart.Version }}, and the bundled application version
+is {{ .Chart.AppVersion }}
+The release name is {{ .Release.Name }} and it will be installed to the 
+{{ .Release.Namespace }} namespace.
+Is this a new installation? {{ .Release.IsInstall }}
+Is this an upgrade? {{ .Release.IsUpgrade }}
+The version of kubernetes running on this cluster is
+{{ .Capabilities.KubeVersion }}
+
+resources:
+  {{- toYaml .Values.resources | nindent 2 }}
+{{- "\n" }}
+
+{{- if eq .Values.service.type "ClusterIP" -}}
+The service type is ClusterIP
+{{- else if eq .Values.service.type "NodePort" -}}
+The service type is NodePort
+{{ else }}
+The service type is LoadBalancer
+{{- end }}
+{{- "\n" }}
+
+{{- if ne .Values.service.type "ClusterIP" -}}
+The service type is not ClusterIP
+{{- end }}
+{{- "\n" }}
+
+{{- if and (eq .Values.service.type "NodePort") .Values.ingress.enabled -}}
+The service type is NodePort and ingress is enabled
+{{- end }}
+{{- "\n" }}
+
+{{- if or (eq .Values.service.type "NodePort") .Values.ingress.enabled -}}
+The service type is NodePort OR ingress is enabled
+{{- end }}
+{{- "\n" }}
+
+{{- if lt (.Capabilities.KubeVersion.Minor | int)  23 -}}
+{{- fail "This chart requires Kubernetes version 1.23 or higher" -}}
+{{- end }}
+{{- "\n" }}
+
+{{- if gt (.Capabilities.KubeVersion.Minor | int) 23 -}}
+The kubernetes version is greater than 1.23
+{{- end }}
+{{- "\n" }}
+
+{{ include "myapp.name" . }}
+Above is the myapp.name and it is the chart name by default
+_helpers.tpl nameOverride will override this name with the override name
+This is the myapp.name in the _helpers.tpl file
+
+{{include "myapp.fullname" . }}
+Above is the fully qualified app name used by kubernetes
+This is myapp.fullname in the _helpers.tpl file
+The logic is .Release.Name but if the $name is not a subset of the .Release.Name use the .Release.Name-$name
+as the fully  qualified name
+Example: the release name is test: helm install test . --dry-run, and the $name is myapp
+In the example the  final fully qualified name myapp.fullname would be test-myapp
+
+{{include "myapp.chart" . }}
+This is myapp.chart and is the chart name and version as used by teh chart label.
+
+{{include "myapp.labels" . }}
+This is the myapp.labels and is the name and version of the chart and the generation service (always Helm)
+
+{{include "myapp.serviceAccountName" . }}
+This is the myapp.serviceAccountName. This will be the same as the myapp.fullname above if no serviceAccountName 
+is in the values.yaml file.

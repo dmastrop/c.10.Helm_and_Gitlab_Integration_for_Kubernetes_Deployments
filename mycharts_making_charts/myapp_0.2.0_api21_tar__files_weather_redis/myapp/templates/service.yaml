@@ -1,0 +1,64 @@
+{{- $ports := .Values.service.ports -}}
+# the line above will assign the value to the variable ports
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "myapp.fullname" . }}
+  labels:
+    {{- include "myapp.labels" . | nindent 4 }}
+    # the annotation will get the name, the targetPort and the port number
+    # The 0 is the index number to the first service http
+    # To just get the port number add the .number 
+    {{- /*
+    # for annotations replace the mainPort: "{{ (index .Values.service.ports 0).number }}" with mainPort: "{{ (index $ports 0).number }}"
+    */}}
+  annotations:
+    mainPort: "{{ (index $ports 0).number }}"
+spec:
+  type: {{ .Values.service.type }}
+
+  # the configuration below is multiport but not efficent. Replace this by utlizing the list in values.yaml file
+  # (see below)
+  # ports:
+  #   - port: {{ .Values.service.port }}
+  #     targetPort: http
+  #     protocol: TCP
+  #     name: http
+  #   - port: {{ .Values.service.ssl_port }}
+  #     targetPort: {{ .Values.service.ssl_target_port }}
+  #     name: {{ .Values.service.ssl_name }}
+  #     protocol: TCP
+
+  # this more efficient configuration will iterate through the list configuration in the values.yaml file.
+  # range is a helm function that is used to loop over lists or dictionaries. 
+  # A dictionary in golang is called a map
+  # .number is a child of the .Values.service.ports range so we do not have to retype the whole .Values.service.ports.number to
+  # reference the port number in the values.yaml file and iterate through the list.
+  # The same applies to the .targetPort and .name nomenclature.
+  {{- /*
+  # replace the {{- range .Values.service.ports }} with {{- range $ports }}
+  # define the ports variable $ports at the top of this service.yaml file.
+  */}}
+  {{- /*
+  # replace the {{- range $ports }} with {{- range $key, $value := $ports }}
+  # then add this if and AND condition {{- if and (eq ($value.number | int) 8080) (eq $value.name "admin") }}
+  # if both the value.number is 8080 AND the value.name is admin then abort and fail the range loop iteration through the list
+  # and post the message below
+  # NOTE that the name key and value in the range command are not fixed. These can be anything and they are simply used
+  # to iterate over all of the objects in the port array.
+  # When iterating over a map (dictionary), we use the $k and $v variables (names are not important), 
+  # which are populated with the key and value of the item in the map.
+  */}}
+  ports:
+  {{- range $key, $value := $ports }}
+  {{- if and (eq ($value.number | int) 8081) (eq $value.name "admin") }}
+  {{- fail "Please use another port number other than 8081 for the admin port" }}
+  {{- end }}
+    - port: {{ .number }}
+      targetPort: {{ .targetPort }}
+      protocol: TCP
+      name: {{ .name }}
+  {{- end }}
+
+  selector:
+    {{- include "myapp.selectorLabels" . | nindent 4 }}

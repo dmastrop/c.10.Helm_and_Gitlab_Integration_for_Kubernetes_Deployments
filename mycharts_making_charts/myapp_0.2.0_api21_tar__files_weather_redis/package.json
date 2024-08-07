@@ -1,0 +1,23 @@
+{
+  "name": "helmapp",
+  "version": "1.0.0",
+  "description": "A hello world application for nodejs",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/linuxschoolonline/helmapp.git"
+  },
+  "author": "Ahmed Elfakharany",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/linuxschoolonline/helmapp/issues"
+  },
+  "homepage": "https://github.com/linuxschoolonline/helmapp#readme",
+  "dependencies": {
+    "axios": "^0.21.1",
+    "config": "^3.3.6"
+  }
+}
