@@ -18,7 +18,7 @@ data:
       }
     }
 
-{{-/*
+{{- /*
 Remove this. For version 2.1.0 0.2.0 with redis need to add redis configuration
 See above
 {{ (.Files.Glob "config/*").AsConfig | indent 4 }}
