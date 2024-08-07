@@ -1,8 +1,0 @@
-{
-    "network": {
-        "port": "80"
-    },
-    "environment": {
-        "SSL": false
-    }
-}
