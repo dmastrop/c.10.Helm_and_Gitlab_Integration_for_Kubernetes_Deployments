@@ -115,3 +115,9 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+# this next block is to disable authentication from the parent myapp to the newly added redis pod
+# In development this is ok. In production authentication should be disabled
+redis:
+  auth:
+    enabled: false

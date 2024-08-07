@@ -3,7 +3,27 @@ kind: ConfigMap
 metadata:
   name: {{ include "myapp.fullname" .}}
 data:
+data:
+  default.json: |
+    {
+      "network": {
+        "port": "80"
+      },
+      "environment": {
+        "SSL": false
+      },
+      "redis": {
+        "server": "{{ .Release.Name }}-redis-master".
+        "port": "6379"
+      }
+    }
+
+{{-/*
+Remove this. For version 2.1.0 0.2.0 with redis need to add redis configuration
+See above
 {{ (.Files.Glob "config/*").AsConfig | indent 4 }}
+*/}}
+
 {{- /*
 # METHOD 2 above for mutliple config files using glob
 # NOTE the default.json: | has been removed
