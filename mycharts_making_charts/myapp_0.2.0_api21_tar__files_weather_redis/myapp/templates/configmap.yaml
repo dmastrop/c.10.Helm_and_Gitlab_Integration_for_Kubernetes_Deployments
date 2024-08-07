@@ -13,7 +13,7 @@ data:
         "SSL": false
       },
       "redis": {
-        "server": "{{ .Release.Name }}-redis-master".
+        "server": "{{ .Release.Name }}-redis-master",
         "port": "6379"
       }
     }
