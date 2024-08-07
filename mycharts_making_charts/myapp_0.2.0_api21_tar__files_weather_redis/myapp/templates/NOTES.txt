@@ -69,4 +69,4 @@ This is the myapp.labels and is the name and version of the chart and the genera
 This is the myapp.serviceAccountName. This will be the same as the myapp.fullname above if no serviceAccountName 
 is in the values.yaml file.
 
-{{ .Values.imported.containerPort }}
+{{ include .Values.imported.containerPort }}
