@@ -25,8 +25,13 @@ dependencies:
     #version: ^15.x
     version: 16.13.2
     repository: https://charts.bitnami.com/bitnami
+    import-values:
+      - child: master
+        parent: imported
 
 # ITERATION 2:
+# imported can be used as a key into accessing child (redis) properties and configuration
+# we can access the configurations and display in NOTES.txt file
 # dependencies:
 # - import-values:
 #   - child: master
