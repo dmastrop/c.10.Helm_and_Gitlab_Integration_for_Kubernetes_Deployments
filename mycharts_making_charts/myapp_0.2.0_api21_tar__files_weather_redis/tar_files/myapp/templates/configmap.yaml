@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "myapp.fullname" .}}
+data:
+  default.json: |
+    {
+      "network": {
+        "port": "80"
+      },
+      "environment": {
+        "SSL": false
+      },
+      "redis": {
+        "server": "{{ .Release.Name }}-redis-master",
+        "port": "6379"
+      }
+    }

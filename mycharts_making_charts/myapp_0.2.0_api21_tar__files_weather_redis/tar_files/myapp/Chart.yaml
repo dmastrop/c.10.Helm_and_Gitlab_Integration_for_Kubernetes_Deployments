@@ -1,0 +1,13 @@
+apiVersion: v2
+appVersion: 2.1.0
+dependencies:
+- import-values:
+  - child: master
+    parent: imported
+  name: redis
+  repository: https://charts.bitnami.com/bitnami
+  version: ^15.x
+description: A Hello World application written for NodeJS
+name: myapp
+type: application
+version: 0.2.0
