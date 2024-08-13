@@ -69,5 +69,17 @@ This is the myapp.labels and is the name and version of the chart and the genera
 This is the myapp.serviceAccountName. This will be the same as the myapp.fullname above if no serviceAccountName 
 is in the values.yaml file.
 
+
+
+
+
 {{ .Values.imported.containerPort }}
-This is an import from child redis to master myapp for the redis containerPort
+{{ .Values.imported.NodePort }}
+{{ .Values.imported.configuration }}
+
+{{ .Values.imported.containerPorts.redis }}
+{{ .Values.imported.service.type }}
+{{ .Values.imported.service.clusterIP }}
+{{ .Values.imported.service.ports.redis }}
+
+This is an import from child master redis to master myapp for the redis containerPorts and service.type
