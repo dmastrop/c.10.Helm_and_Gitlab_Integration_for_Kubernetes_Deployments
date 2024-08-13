@@ -40,7 +40,7 @@ dependencies:
 #   repository: https://charts.bitnami.com/bitnami
 #   version: ^15.x
 
-description: A weather application written for NodeJS
+description: A weather application written for NodeJS, now with redis caching for the backend API calls
 
 
 
