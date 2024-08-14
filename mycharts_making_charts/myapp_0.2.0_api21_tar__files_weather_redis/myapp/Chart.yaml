@@ -28,6 +28,9 @@ dependencies:
     import-values:
       - child: master
         parent: imported
+  - name: libpolicy
+    version: 0.1.0
+    repository: file://../libpolicy
 
 # ITERATION 2:
 # imported can be used as a key into accessing child (redis) properties and configuration

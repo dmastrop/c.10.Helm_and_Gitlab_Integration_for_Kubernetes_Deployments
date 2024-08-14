@@ -40,7 +40,9 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           #imagePullPolicy: {{ .Values.image.pullPolicy }}
           # replace this with our custom named template in _helpers.tpl for dev and production imagePullPolicy
-          imagePullPolicy: {{ include "myapp.imagePullPolicy" . }}
+          # imagePullPolicy: {{ include "myapp.imagePullPolicy" . }}
+          # phase2: replace this with the libpolicy.imagePullPolicy helper file instead which is s shared library helper file
+          imagePullPolicy: {{ include "libpolicy.imagePullPolicy" . }} 
           volumeMounts:
             - name: config
               mountPath: /app/config/default.json
