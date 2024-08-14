@@ -19,6 +19,7 @@ appVersion: "2.1.0"
 # I am not sure if this is still available. Try it out. If not use the version 16 as shown in 
 # helm search repo "redis" --versions    version: ~15.3.x will cover 15.3.0  and less than 15.4.0
 # right now 16.11.2 through 16.13.2 are in the repo.
+# Added libpolicy for the shared library helper template for imagepullpolicy
 # ITERATION 1
 dependencies:
   - name: redis
@@ -70,4 +71,5 @@ type: application
 # The appVersion has changed to 2.0.0 for this weather api modification and so the chart version should incremment from 
 # 0.1.0 to 0.1.1  
 # 0.2.0 is the chart version with redis child chart
-version: 0.2.0
+# 0.2.1 is the chart version with the libpolicy dependency helper templates added
+version: 0.2.1
