@@ -72,4 +72,5 @@ type: application
 # 0.1.0 to 0.1.1  
 # 0.2.0 is the chart version with redis child chart
 # 0.2.1 is the chart version with the libpolicy dependency helper templates added
-version: 0.2.1
+# 0.2.2 is the chart version for the use with the myrepo local helm respository of the myapp
+version: 0.2.2
