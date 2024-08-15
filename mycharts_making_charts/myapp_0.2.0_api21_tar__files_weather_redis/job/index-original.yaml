@@ -1,0 +1,46 @@
+apiVersion: v1
+entries:
+  myapp:
+  - apiVersion: v2
+    appVersion: 2.1.0
+    created: "2024-08-14T23:53:22.45477506Z"
+    dependencies:
+    - import-values:
+      - child: master
+        parent: imported
+      name: redis
+      repository: https://charts.bitnami.com/bitnami
+      version: 16.13.2
+    - name: libpolicy
+      repository: file://../libpolicy
+      version: 0.1.0
+    description: A weather application written for NodeJS, now with redis caching
+      for the backend API calls
+    digest: 28a81025ed28a5c151bf8d87b2bc1fdf7dad471b272c13a8dcde5a427573578e
+    name: myapp
+    type: application
+    urls:
+    - myapp-0.2.2.tgz
+    version: 0.2.2
+  - apiVersion: v2
+    appVersion: 2.1.0
+    created: "2024-08-14T23:53:22.438107671Z"
+    dependencies:
+    - import-values:
+      - child: master
+        parent: imported
+      name: redis
+      repository: https://charts.bitnami.com/bitnami
+      version: 16.13.2
+    - name: libpolicy
+      repository: file://../libpolicy
+      version: 0.1.0
+    description: A weather application written for NodeJS, now with redis caching
+      for the backend API calls
+    digest: d48663fac80d4db8feb0e8ab094691c0acb78a17c5c7b70274c640fecacccd67
+    name: myapp
+    type: application
+    urls:
+    - myapp-0.2.1.tgz
+    version: 0.2.1
+generated: "2024-08-14T23:53:22.42434941Z"
