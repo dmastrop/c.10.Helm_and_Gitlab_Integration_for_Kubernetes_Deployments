@@ -3,3 +3,5 @@ secret.yaml
 node_modules
 package-lock.json
 index.yaml
+cert.pem
+key.pem
