@@ -8,6 +8,17 @@ APP version 1.0 Chart version 0.1.0 with hello world
 APP version 2.0 Chart version 0.1.1 with APIKEY backend weatherapp api
 APP version 2.1 Chart version 0.2.0 with redis
 
+Chart.yaml file:
+ This is the chart version. This version number should be incremented each time you make changes
+ to the chart and its templates, including the app version.
+ Versions are expected to follow Semantic Versioning (https://semver.org/)
+ The appVersion has changed to 2.0.0 for this weather api modification and so the chart version should incremment from 
+ 0.1.0 to 0.1.1  
+ 0.2.0 is the chart version with redis child chart
+ 0.2.1 is the chart version with the libpolicy dependency helper templates added
+ 0.2.2 is the chart version for the use with the myrepo local helm respository of the myapp
+ 0.2.3 is a test with the chartmuseum using amazon s3 bucket for chart storage
+
 
 
 ubuntu@ip-172-31-21-52:~/course10_helm_with_kops/mycharts_making_charts$ ls -la
