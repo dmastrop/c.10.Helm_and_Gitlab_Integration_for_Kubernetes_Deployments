@@ -83,3 +83,10 @@ is in the values.yaml file.
 {{ .Values.imported.service.ports.redis }}
 
 This is an import from child master redis to master myapp for the redis containerPorts and service.type
+
+{{ include "libpolicy.imagePullPolicy" . }} 
+This is the imagePullPolicy from libpolicy helper template that is being used by deployment.yaml
+
+{{ include "myapp.imagePullPolicy" . }}
+This is the imagePullPolicy from the _helpers template tpl file. This is currently not beeing used.
+This follows same logic as the libpolicy.imagePullPolicy
