@@ -75,4 +75,5 @@ type: application
 # 0.2.2 is the chart version for the use with the myrepo local helm respository of the myapp
 # 0.2.3 is a test with the chartmuseum using amazon s3 bucket for chart storage
 # 0.2.4 adding to NOTES.txt and then push to chartmuseum as a new tgz
-version: 0.2.4
+# 0.2.5 test out the .helmignore file for creation of new chart tgz and then push to chartmuseum
+version: 0.2.5
