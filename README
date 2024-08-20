@@ -18,6 +18,7 @@ Chart.yaml file:
  0.2.1 is the chart version with the libpolicy dependency helper templates added
  0.2.2 is the chart version for the use with the myrepo local helm respository of the myapp
  0.2.3 is a test with the chartmuseum using amazon s3 bucket for chart storage
+ 0.2.4 chartmuseum with addtions to the NOTES.txt
 
 
 
