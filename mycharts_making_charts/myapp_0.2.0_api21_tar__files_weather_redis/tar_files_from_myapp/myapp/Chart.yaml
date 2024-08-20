@@ -1,0 +1,17 @@
+apiVersion: v2
+appVersion: 2.1.0
+dependencies:
+- import-values:
+  - child: master
+    parent: imported
+  name: redis
+  repository: https://charts.bitnami.com/bitnami
+  version: 16.13.2
+- name: libpolicy
+  repository: file://../libpolicy
+  version: 0.1.0
+description: A weather application written for NodeJS, now with redis caching for
+  the backend API calls
+name: myapp
+type: application
+version: 0.2.4
