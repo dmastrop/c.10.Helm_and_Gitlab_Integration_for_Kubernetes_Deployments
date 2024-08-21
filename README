@@ -36,6 +36,680 @@ drwxr-xr-x 4 ubuntu ubuntu 4096 Aug  2 00:45 myapp_0.1.1_api2_test_weather
 drwxrwxr-x 2 ubuntu ubuntu 4096 Aug  6 20:11 myapp_0.2.0_api21_tar_files_weather_redis
 drwxr-xr-x 4 ubuntu ubuntu 4096 Jul 29 22:16 playground
 
+
+
+
+
+
+
+
+
+
+
+
+## Generalized approach for personal own myrepo (local) and hosting a chartmuseum repo on AWS, and updating chart version accordingly
+
+### Step1: Edit Chart.yaml in the myapp with new chart version
+
+
+### Step2: helm package .
+Successfully packaged chart and saved it to: /home/ubuntu/course10_helm_with_kops/mycharts_making_charts/myapp_0.2.0_api21_tar__files_weather_redis/myapp/myapp-0.2.4.tgz
+ubuntu@ip-172-31-21-52:~/course10_helm_with_kops/mycharts_making_charts/myapp_0.2.0_api21_tar__files_weather_redis/myapp$ ls -la
+total 560
+drwxrwxr-x  7 ubuntu ubuntu   4096 Aug 19 22:25 .
+drwxr-xr-x 11 ubuntu ubuntu   4096 Aug 16 02:23 ..
+-rw-rw-r--  1 ubuntu ubuntu    349 Aug  7 00:34 .helmignore
+-rw-r--r--  1 ubuntu ubuntu    289 Aug 14 00:53 Chart.lock
+-rw-rw-r--  1 ubuntu ubuntu   3189 Aug 19 22:22 Chart.yaml
+drwxr-xr-x  2 ubuntu ubuntu   4096 Aug 14 00:55 charts
+drwxrwxr-x  2 ubuntu ubuntu   4096 Aug  7 00:34 config
+drwxrwxr-x  2 ubuntu ubuntu   4096 Aug  7 00:34 config_Backup_with_all_6_files
+-rw-rw-r--  1 ubuntu ubuntu     97 Aug  7 00:34 default.json
+-rw-rw-r--  1 ubuntu ubuntu   4034 Aug  7 00:34 myapp-0.1.0.tgz
+-rw-rw-r--  1 ubuntu ubuntu 205534 Aug 19 21:37 myapp-0.2.3.tgz
+-rw-rw-r--  1 ubuntu ubuntu 310212 Aug 19 22:25 myapp-0.2.4.tgz
+drwxrwxr-x  2 ubuntu ubuntu   4096 Aug  7 00:34 other_templates
+drwxrwxr-x  3 ubuntu ubuntu   4096 Aug 19 19:58 templates
+-rw-rw-r--  1 ubuntu ubuntu   3211 Aug  7 01:14 values.yaml
+
+
+### Step3: update myrepo with 0.2.4
+
+
+helm package --destination ../myrepo .
+Successfully packaged chart and saved it to: ../myrepo/myapp-0.2.4.tgz
+
+
+ubuntu@ip-172-31-21-52:~/course10_helm_with_kops/mycharts_making_charts/myapp_0.2.0_api21_tar__files_weather_redis/myrepo$ ls
+index-cache.yaml  index.yaml  myapp-0.2.1.tgz  myapp-0.2.2.tgz  myapp-0.2.4.tgz
+
+
+
+### Step4 : helm repo index ../myrepo to update the index.yaml file. Not sure what the index-cache.yaml file is there for but it is not updated
+
+
+### Step5: helm repo update
+
+The localhost myrepo is not getting updated
+
+
+helm repo update
+Hang tight while we grab the latest from your chart repositories...
+...Unable to get an update from the "myrepo" chart repository (http://localhost):
+        Get "http://localhost/index.yaml": dial tcp 127.0.0.1:80: connect: connection refused
+...Unable to get an update from the "s3mywebcharts" chart repository (http://mycharts.s3-website-us-east-1.amazonaws.com):
+        failed to fetch http://mycharts.s3-website-us-east-1.amazonaws.com/index.yaml : 404 Not Found
+...Successfully got an update from the "chartmuseum" chart repository
+...Successfully got an update from the "aws-ebs-csi-driver" chart repository
+...Successfully got an update from the "vmware-tanzu" chart repository
+...Successfully got an update from the "bitnami" chart repository
+Update Complete. ⎈Happy Helming!⎈
+ubuntu@ip-172-31-21-52:~/course10_helm_with_kops/mycharts_making_charts/myapp_0.2.0_api21_tar__files_weather_redis/myrepo$ helm search repo "myapp" --versions
+NAME                    CHART VERSION   APP VERSION     DESCRIPTION                                       
+chartmuseum/myapp       0.2.3           2.1.0           A weather application written for NodeJS, now w...
+chartmuseum/myapp       0.2.2           2.1.0           A weather application written for NodeJS, now w...
+chartmuseum/myapp       0.2.1           2.1.0           A weather application written for NodeJS, now w...
+myrepo/myapp            0.2.2           2.1.0           A weather application written for NodeJS, now w...
+myrepo/myapp            0.2.1           2.1.0           A weather application written for NodeJS, now w...
+s3mywebcharts/myapp     0.2.2           2.1.0           A weather application written for NodeJS, now w...
+s3mywebcharts/myapp     0.2.1           2.1.0           A weather application written for NodeJS, now w...
+
+  
+### Step6: Need to start the docker container on localhost FROM THE myrepo directory
+
+
+sudo docker run -d -p 80:80 -v $(pwd):/usr/local/apache2/htdocs/ httpd
+
+to make this able to be run from any directory use this:
+sudo docker run -d -p 80:80 -v /home/ubuntu/course10_helm_with_kops/mycharts_making_charts/myapp_0.2.0_api21_tar__files_weather_redis/myrepo:/usr/local/apache2/htdocs/ httpd
+
+po$ docker ps
+CONTAINER ID   IMAGE                            COMMAND                  CREATED         STATUS         PORTS                                       NAMES
+fa88761eb1d5   httpd                            "httpd-foreground"       2 seconds ago   Up 2 seconds   0.0.0.0:80->80/tcp, :::80->80/tcp           boring_boyd
+acc4528214d3   chartmuseum/chartmuseum:latest   "/chartmuseum --auth…"   2 hours ago     Up 2 hours     0.0.0.0:8443->8443/tcp, :::8443->8443/tcp   silly_lovelace
+
+
+
+
+
+### Step7: Try running the helm repo update again
+
+
+ubuntu@ip-172-31-21-52:~/course10_helm_with_kops/mycharts_making_charts/myapp_0.2.0_api21_tar__files_weather_redis/myrepo$ helm repo update
+Hang tight while we grab the latest from your chart repositories...
+...Successfully got an update from the "myrepo" chart repository
+...Unable to get an update from the "s3mywebcharts" chart repository (http://mycharts.s3-website-us-east-1.amazonaws.com):
+        failed to fetch http://mycharts.s3-website-us-east-1.amazonaws.com/index.yaml : 404 Not Found
+...Successfully got an update from the "chartmuseum" chart repository
+...Successfully got an update from the "aws-ebs-csi-driver" chart repository
+...Successfully got an update from the "vmware-tanzu" chart repository
+...Successfully got an update from the "bitnami" chart repository
+Update Complete. ⎈Happy Helming!⎈
+
+
+
+
+### Step8: run the search on --versions and it shows up now
+
+
+
+helm search repo "myapp" --versions
+NAME                    CHART VERSION   APP VERSION     DESCRIPTION                                       
+chartmuseum/myapp       0.2.3           2.1.0           A weather application written for NodeJS, now w...
+chartmuseum/myapp       0.2.2           2.1.0           A weather application written for NodeJS, now w...
+chartmuseum/myapp       0.2.1           2.1.0           A weather application written for NodeJS, now w...
+myrepo/myapp            0.2.4           2.1.0           A weather application written for NodeJS, now w...
+myrepo/myapp            0.2.2           2.1.0           A weather application written for NodeJS, now w...
+myrepo/myapp            0.2.1           2.1.0           A weather application written for NodeJS, now w...
+s3mywebcharts/myapp     0.2.2           2.1.0           A weather application written for NodeJS, now w...
+s3mywebcharts/myapp     0.2.1           2.1.0           A weather application written for NodeJS, now w...
+
+
+### Step9: try upgrading now to 0.2.4 version from myrepo
+This is now getting the latest changes to NOTES.txt file with0.2.4 version
+
+
+
+helm upgrade myapp2100 myrepo/myapp
+Release "myapp2100" has been upgraded. Happy Helming!
+NAME: myapp2100
+LAST DEPLOYED: Mon Aug 19 23:03:08 2024
+NAMESPACE: default
+STATUS: deployed
+REVISION: 6
+NOTES:
+The name of this chart is myapp,
+its version is 0.2.4, and the bundled application version
+is 2.1.0
+The release name is myapp2100 and it will be installed to the 
+default namespace.
+Is this a new installation? false
+Is this an upgrade? true
+The version of kubernetes running on this cluster is
+v1.26.15
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+The service type is NodePort
+
+The service type is not ClusterIP
+
+The service type is NodePort OR ingress is enabled
+
+The kubernetes version is greater than 1.23
+
+
+myapp
+Above is the myapp.name and it is the chart name by default
+_helpers.tpl nameOverride will override this name with the override name
+This is the myapp.name in the _helpers.tpl file
+
+myapp2100
+Above is the fully qualified app name used by kubernetes
+This is myapp.fullname in the _helpers.tpl file
+The logic is .Release.Name but if the $name is not a subset of the .Release.Name use the .Release.Name-$name
+as the fully  qualified name
+Example: the release name is test: helm install test . --dry-run, and the $name is myapp
+In the example the  final fully qualified name myapp.fullname would be test-myapp
+
+myapp-0.2.4
+This is myapp.chart and is the chart name and version as used by teh chart label.
+
+helm.sh/chart: myapp-0.2.4
+app.kubernetes.io/name: myapp
+app.kubernetes.io/instance: myapp2100
+app.kubernetes.io/version: "2.1.0"
+app.kubernetes.io/managed-by: Helm
+This is the myapp.labels and is the name and version of the chart and the generation service (always Helm)
+
+myapp2100
+This is the myapp.serviceAccountName. This will be the same as the myapp.fullname above if no serviceAccountName 
+is in the values.yaml file.
+
+
+
+
+
+
+
+
+
+6379
+ClusterIP
+
+6379
+
+This is an import from child master redis to master myapp for the redis containerPorts and service.type
+
+Always 
+This is the imagePullPolicy from libpolicy helper template that is being used by deployment.yaml
+
+Always
+This is the imagePullPolicy from the _helpers template tpl file. This is currently not beeing used.
+This follows same logic as the libpolicy.imagePullPolicy
+
+
+### Step10: Helm list now shows 0.2.4 from myrepo
+
+ubuntu@ip-172-31-21-52:~/course10_helm_with_kops/mycharts_making_charts/myapp_0.2.0_api21_tar__files_weather_redis$ helm list
+NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART         APP VERSION
+myapp2100       default         6               2024-08-19 23:03:08.892799409 +0000 UTC deployed        myapp-0.2.4   2.1.0      
+
+
+### Step11: next update the chartmuseum repo with 0.2.4. From myapp directory do this
+
+curl -L -k --data-binary "@myapp-0.2.4.tgz" -u repouser:repopass https://localhost:8443/api/charts
+ 
+
+ubuntu@ip-172-31-21-52:~/course10_helm_with_kops/mycharts_making_charts/myapp_0.2.0_api21_tar__files_weather_redis/myapp$ ls -la
+total 864
+drwxrwxr-x  7 ubuntu ubuntu   4096 Aug 19 22:25 .
+drwxr-xr-x 11 ubuntu ubuntu   4096 Aug 16 02:23 ..
+-rw-rw-r--  1 ubuntu ubuntu    349 Aug  7 00:34 .helmignore
+-rw-r--r--  1 ubuntu ubuntu    289 Aug 14 00:53 Chart.lock
+-rw-rw-r--  1 ubuntu ubuntu   3189 Aug 19 22:22 Chart.yaml
+drwxr-xr-x  2 ubuntu ubuntu   4096 Aug 14 00:55 charts
+drwxrwxr-x  2 ubuntu ubuntu   4096 Aug  7 00:34 config
+drwxrwxr-x  2 ubuntu ubuntu   4096 Aug  7 00:34 config_Backup_with_all_6_files
+-rw-rw-r--  1 ubuntu ubuntu     97 Aug  7 00:34 default.json
+-rw-rw-r--  1 ubuntu ubuntu   4034 Aug  7 00:34 myapp-0.1.0.tgz
+-rw-rw-r--  1 ubuntu ubuntu 205534 Aug 19 21:37 myapp-0.2.3.tgz
+-rw-rw-r--  1 ubuntu ubuntu 619788 Aug 19 23:09 myapp-0.2.4.tgz
+drwxrwxr-x  2 ubuntu ubuntu   4096 Aug  7 00:34 other_templates
+drwxrwxr-x  3 ubuntu ubuntu   4096 Aug 19 19:58 templates
+-rw-rw-r--  1 ubuntu ubuntu   3211 Aug  7 01:14 values.yaml
+ubuntu@ip-172-31-21-52:~/course10_helm_with_kops/mycharts_making_charts/myapp_0.2.0_api21_tar__files_weather_redis/myapp$ curl -L -k --data-binary "@myapp-0.2.4.tgz" -u repouser:repopass https://localhost:8443/api/charts
+{"saved":true}
+
+
+
+### Step12: IMPORTANT note: the index-cache is automatically updated unlike with myrepo. With myrepo it has to be manually done
+
+apiVersion: v1
+entries:
+  myapp:
+  - apiVersion: v2
+    appVersion: 2.1.0
+    created: "2024-08-19T23:18:02.514982165Z"
+    dependencies:
+    - import-values:
+      - child: master
+        parent: imported
+      name: redis
+      repository: https://charts.bitnami.com/bitnami
+      version: 16.13.2
+    - name: libpolicy
+      repository: file://../libpolicy
+      version: 0.1.0
+    description: A weather application written for NodeJS, now with redis caching for the backend API calls
+    digest: 66ee1fb6696e3094382992bfbd8b35fbacb3179cb5692f7aec7b6792b6e0e771
+    name: myapp
+    type: application
+    urls:
+    - charts/myapp-0.2.4.tgz
+    version: 0.2.4
+  - apiVersion: v2
+    appVersion: 2.1.0
+    created: "2024-08-16T22:18:19.307970103Z"
+    dependencies:
+    - import-values:
+      - child: master
+        parent: imported
+      name: redis
+      repository: https://charts.bitnami.com/bitnami
+      version: 16.13.2
+    - name: libpolicy
+      repository: file://../libpolicy
+      version: 0.1.0
+    description: A weather application written for NodeJS, now with redis caching for the backend API calls
+    digest: 075a8f5504519587c51201b80ea5d36e3b88a4a7f0158d239b5137635032bf29
+    name: myapp
+    type: application
+    urls:
+    - charts/myapp-0.2.3.tgz
+    version: 0.2.3
+  - apiVersion: v2
+    appVersion: 2.1.0
+    created: "2024-08-16T21:40:38Z"
+    dependencies:
+    - import-values:
+      - child: master
+        parent: imported
+      name: redis
+      repository: https://charts.bitnami.com/bitnami
+      version: 16.13.2
+    - name: libpolicy
+      repository: file://../libpolicy
+      version: 0.1.0
+    description: A weather application written for NodeJS, now with redis caching for the backend API calls
+    digest: 28a81025ed28a5c151bf8d87b2bc1fdf7dad471b272c13a8dcde5a427573578e
+    name: myapp
+    type: application
+    urls:
+    - charts/myapp-0.2.2.tgz
+    version: 0.2.2
+  - apiVersion: v2
+    appVersion: 2.1.0
+    created: "2024-08-16T21:40:26Z"
+    dependencies:
+    - import-values:
+      - child: master
+        parent: imported
+      name: redis
+      repository: https://charts.bitnami.com/bitnami
+      version: 16.13.2
+    - name: libpolicy
+      repository: file://../libpolicy
+      version: 0.1.0
+    description: A weather application written for NodeJS, now with redis caching for the backend API calls
+    digest: d48663fac80d4db8feb0e8ab094691c0acb78a17c5c7b70274c640fecacccd67
+    name: myapp
+    type: application
+    urls:
+    - charts/myapp-0.2.1.tgz
+    version: 0.2.1
+generated: "2024-08-19T23:18:03Z"
+serverInfo: {}
+
+ 
+
+
+
+### Step13: helm repo update to update chartmuseum with 0.2.4
+
+
+helm repo update
+Hang tight while we grab the latest from your chart repositories...
+...Successfully got an update from the "myrepo" chart repository
+...Unable to get an update from the "s3mywebcharts" chart repository (http://mycharts.s3-website-us-east-1.amazonaws.com):
+        failed to fetch http://mycharts.s3-website-us-east-1.amazonaws.com/index.yaml : 404 Not Found
+...Successfully got an update from the "chartmuseum" chart repository
+...Successfully got an update from the "aws-ebs-csi-driver" chart repository
+...Successfully got an update from the "vmware-tanzu" chart repository
+...Successfully got an update from the "bitnami" chart repository
+Update Complete. ⎈Happy Helming!⎈
+
+
+
+
+### Step14: show --versions to make sure 0.2.4 is in the chartmuseum repo
+
+helm search repo "myapp" --versions
+NAME                    CHART VERSION   APP VERSION     DESCRIPTION                                       
+chartmuseum/myapp       0.2.4           2.1.0           A weather application written for NodeJS, now w...
+chartmuseum/myapp       0.2.3           2.1.0           A weather application written for NodeJS, now w...
+chartmuseum/myapp       0.2.2           2.1.0           A weather application written for NodeJS, now w...
+chartmuseum/myapp       0.2.1           2.1.0           A weather application written for NodeJS, now w...
+myrepo/myapp            0.2.4           2.1.0           A weather application written for NodeJS, now w...
+myrepo/myapp            0.2.2           2.1.0           A weather application written for NodeJS, now w...
+myrepo/myapp            0.2.1           2.1.0           A weather application written for NodeJS, now w...
+s3mywebcharts/myapp     0.2.2           2.1.0           A weather application written for NodeJS, now w...
+s3mywebcharts/myapp     0.2.1           2.1.0           A weather application written for NodeJS, now w...
+
+
+
+
+curl -k https://localhost:8443/api/charts | jq '.myapp[].version'
+
+
+curl -k https://localhost:8443/api/charts | jq '.myapp[].version'
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100  2351    0  2351    0     0  59792      0 --:--:-- --:--:-- --:--:-- 60282
+"0.2.4"
+"0.2.3"
+"0.2.2"
+"0.2.1"
+
+
+
+
+curl -k https://localhost:8443/api/charts | jq 
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100  2351    0  2351    0     0  60435      0 --:--:-- --:--:-- --:--:-- 61868
+{
+  "myapp": [
+    {
+      "name": "myapp",
+      "version": "0.2.4",
+      "description": "A weather application written for NodeJS, now with redis caching for the backend API calls",
+      "apiVersion": "v2",
+      "appVersion": "2.1.0",
+      "dependencies": [
+        {
+          "name": "redis",
+          "version": "16.13.2",
+          "repository": "https://charts.bitnami.com/bitnami",
+          "import-values": [
+            {
+              "child": "master",
+              "parent": "imported"
+            }
+          ]
+        },
+        {
+          "name": "libpolicy",
+          "version": "0.1.0",
+          "repository": "file://../libpolicy"
+        }
+      ],
+      "type": "application",
+      "urls": [
+        "charts/myapp-0.2.4.tgz"
+      ],
+      "created": "2024-08-19T23:18:02.514982165Z",
+      "digest": "66ee1fb6696e3094382992bfbd8b35fbacb3179cb5692f7aec7b6792b6e0e771"
+    },
+    {
+      "name": "myapp",
+      "version": "0.2.3",
+      "description": "A weather application written for NodeJS, now with redis caching for the backend API calls",
+      "apiVersion": "v2",
+      "appVersion": "2.1.0",
+      "dependencies": [
+        {
+          "name": "redis",
+          "version": "16.13.2",
+          "repository": "https://charts.bitnami.com/bitnami",
+          "import-values": [
+            {
+              "child": "master",
+              "parent": "imported"
+            }
+          ]
+        },
+        {
+          "name": "libpolicy",
+          "version": "0.1.0",
+          "repository": "file://../libpolicy"
+        }
+      ],
+      "type": "application",
+      "urls": [
+        "charts/myapp-0.2.3.tgz"
+      ],
+      "created": "2024-08-16T22:18:19.307970103Z",
+      "digest": "075a8f5504519587c51201b80ea5d36e3b88a4a7f0158d239b5137635032bf29"
+    },
+    {
+      "name": "myapp",
+      "version": "0.2.2",
+      "description": "A weather application written for NodeJS, now with redis caching for the backend API calls",
+      "apiVersion": "v2",
+      "appVersion": "2.1.0",
+      "dependencies": [
+        {
+          "name": "redis",
+          "version": "16.13.2",
+          "repository": "https://charts.bitnami.com/bitnami",
+          "import-values": [
+            {
+              "child": "master",
+              "parent": "imported"
+            }
+          ]
+        },
+        {
+          "name": "libpolicy",
+          "version": "0.1.0",
+          "repository": "file://../libpolicy"
+        }
+      ],
+      "type": "application",
+      "urls": [
+        "charts/myapp-0.2.2.tgz"
+      ],
+      "created": "2024-08-16T21:40:38Z",
+      "digest": "28a81025ed28a5c151bf8d87b2bc1fdf7dad471b272c13a8dcde5a427573578e"
+    },
+    {
+      "name": "myapp",
+      "version": "0.2.1",
+      "description": "A weather application written for NodeJS, now with redis caching for the backend API calls",
+      "apiVersion": "v2",
+      "appVersion": "2.1.0",
+      "dependencies": [
+        {
+          "name": "redis",
+          "version": "16.13.2",
+          "repository": "https://charts.bitnami.com/bitnami",
+          "import-values": [
+            {
+              "child": "master",
+              "parent": "imported"
+            }
+          ]
+        },
+        {
+          "name": "libpolicy",
+          "version": "0.1.0",
+          "repository": "file://../libpolicy"
+        }
+      ],
+      "type": "application",
+      "urls": [
+        "charts/myapp-0.2.1.tgz"
+      ],
+      "created": "2024-08-16T21:40:26Z",
+      "digest": "d48663fac80d4db8feb0e8ab094691c0acb78a17c5c7b70274c640fecacccd67"
+    }
+  ]
+}
+
+
+
+### Step15: Sidenote add 0.2.3 to the myrepo/myapp??? How to do this????
+
+Helm package --destination ..myrepo .  does not add 0.2.3 just the latest 0.2.4 which is already there.
+
+I posted this problem to Q&A
+
+
+
+
+### Step16: Finally do helm upgrade
+helm upgrade myapp2100 chartmuseum/myapp --insecure-skip-tls-verify
+Release "myapp2100" has been upgraded. Happy Helming!
+NAME: myapp2100
+LAST DEPLOYED: Mon Aug 19 23:28:44 2024
+NAMESPACE: default
+STATUS: deployed
+REVISION: 7
+NOTES:
+The name of this chart is myapp,
+its version is 0.2.4, and the bundled application version
+is 2.1.0
+The release name is myapp2100 and it will be installed to the 
+default namespace.
+Is this a new installation? false
+Is this an upgrade? true
+The version of kubernetes running on this cluster is
+v1.26.15
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+The service type is NodePort
+
+The service type is not ClusterIP
+
+The service type is NodePort OR ingress is enabled
+
+The kubernetes version is greater than 1.23
+
+
+myapp
+Above is the myapp.name and it is the chart name by default
+_helpers.tpl nameOverride will override this name with the override name
+This is the myapp.name in the _helpers.tpl file
+
+myapp2100
+Above is the fully qualified app name used by kubernetes
+This is myapp.fullname in the _helpers.tpl file
+The logic is .Release.Name but if the $name is not a subset of the .Release.Name use the .Release.Name-$name
+as the fully  qualified name
+Example: the release name is test: helm install test . --dry-run, and the $name is myapp
+In the example the  final fully qualified name myapp.fullname would be test-myapp
+
+myapp-0.2.4
+This is myapp.chart and is the chart name and version as used by teh chart label.
+
+helm.sh/chart: myapp-0.2.4
+app.kubernetes.io/name: myapp
+app.kubernetes.io/instance: myapp2100
+app.kubernetes.io/version: "2.1.0"
+app.kubernetes.io/managed-by: Helm
+This is the myapp.labels and is the name and version of the chart and the generation service (always Helm)
+
+myapp2100
+This is the myapp.serviceAccountName. This will be the same as the myapp.fullname above if no serviceAccountName 
+is in the values.yaml file.
+
+
+
+
+
+
+
+
+
+6379
+ClusterIP
+
+6379
+
+This is an import from child master redis to master myapp for the redis containerPorts and service.type
+
+Always 
+This is the imagePullPolicy from libpolicy helper template that is being used by deployment.yaml
+
+Always
+This is the imagePullPolicy from the _helpers template tpl file. This is currently not beeing used.
+This follows same logic as the libpolicy.imagePullPolicy
+
+
+
+The new NOTES.txt are added (see above highlighted)
+
+
+### Step17: this is now running the chartmuseum 0.2.4 version
+
+
+helm list
+NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART         APP VERSION
+myapp2100       default         7               2024-08-19 23:28:44.918714231 +0000 UTC deployed        myapp-0.2.4   2.1.0      
+ubuntu@ip-1
+
+
+
+### To remove a chart version from chartmuseum
+
+
+
+
+this will remove 0.2.3 chart version from chartmuseum repo
+
+
+$ curl -k -u repouser:repopass -X DELETE https://localhost:8443/api/charts/myapp/0.2.3
+
+
+helm repo update
+
+
+
+then helm search repo “myapp” --versions will show only 0.2.1 and 0.2.2 for the chartmuseum/myapp repo
+
+index.yaml will be updated automatically 
+
+
+
+
+### URL for chartmuseum.com/docs
+ideally combine chartmuseum with redis since chartmuseum stores on disk.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## Troubleshooting
 
 ### The APIKEY quota exhaustion issue
