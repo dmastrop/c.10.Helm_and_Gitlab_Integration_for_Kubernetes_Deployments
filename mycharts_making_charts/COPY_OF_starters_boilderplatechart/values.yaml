@@ -1,4 +1,4 @@
-# Default values for boilerplatechart.
+# Default values for <CHARTNAME>.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
@@ -40,7 +40,8 @@ securityContext: {}
   # runAsUser: 1000
 
 service:
-  type: ClusterIP
+  #type: ClusterIP
+  type: NodePort
   port: 80
 
 ingress:
