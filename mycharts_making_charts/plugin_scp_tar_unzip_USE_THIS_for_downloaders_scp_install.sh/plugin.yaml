@@ -1,0 +1,19 @@
+name: "scp"
+version: "0.2.5"
+usage: "helm scp"
+description: "Package and upload Helm charts over SCP"
+ignoreFlags: false
+platformCommand:
+  - os: linux
+    arch: amd64
+    command: "$HELM_PLUGIN_DIR/bin/helmscp"
+  - os: darwin
+    arch: amd64
+    command: "$HELM_PLUGIN_DIR/bin/helmscp"
+downloaders:
+- command: "bin/helmscp"
+  protocols:
+    - scp
+hooks:
+  install: "cd $HELM_PLUGIN_DIR; ./scripts/install.sh"
+  update: "cd $HELM_PLUGIN_DIR; ./scripts/install.sh"
