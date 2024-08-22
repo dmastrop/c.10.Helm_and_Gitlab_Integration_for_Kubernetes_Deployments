@@ -261,10 +261,27 @@ NAME            NAMESPACE       REVISION        UPDATED                         
 myapp2100       default         6               2024-08-19 23:03:08.892799409 +0000 UTC deployed        myapp-0.2.4   2.1.0      
 
 
-### Step11: next update the chartmuseum repo with 0.2.4. From myapp directory do this
+
+
+### Step 11a: start the chartmuseum docker container . This has to be done from the SSL directory since that is where the keypair (public and private) are located
+
+This can be run using local storage or AWS S3 bucket storage. For me the local storage container is not working for some SSL handshake reason
+
+
+Local storage from SSL directory
+sudo docker run -d -p 8443:8443 -e PORT-8443 -e STORAGE=local -e STORAGE_LOCAL_ROOTDIR=/charts -e TLS_CERT=cert.pem -e TLS_KEY=key.pem -e BASIC_AUTH_USER=repouser -e BASIC_AUTH_PASS=repopass -v ~/course10_helm_with_kops/mycharts_making_charts/myapp_0.2.0_api21_tar__files_weather_redis/myrepo:/charts -v $PWD/cert.pem:/cert.pem -v $PWD/key.pem:/key.pem chartmuseum/chartmuseum:latest --auth-anonymous-get
+
+
+The AWS S3 bucket is working fine from SSL directory
+$ sudo docker run -d -p 8443:8443 -e PORT=8443 -e STORAGE="amazon" -e STORAGE_AMAZON_BUCKET="chartmuseum-helm-s3-bucket" -e STORAGE_AMAZON_PREFIX="" -e STORAGE_AMAZON_REGION="us-east-1" -e TLS_CERT=cert.pem -e TLS_KEY=key.pem -e BASIC_AUTH_USER=repouser -e BASIC_AUTH_PASS=repopass -e << aws access key goes here>> -e <<<aws secret access key goes here>>> -e AWS_DEFAULT_REGION="us-east-1" -v $PWD/cert.pem:/cert.pem -v $PWD/key.pem:/key.pem chartmuseum/chartmuseum:latest --auth-anonymous-get 
+
+
+
+### Step11b: next update the chartmuseum repo with 0.2.4. From myapp directory do this
 
 curl -L -k --data-binary "@myapp-0.2.4.tgz" -u repouser:repopass https://localhost:8443/api/charts
- 
+curl -L -k --data-binary "@myapp-0.2.7.tgz" -u repouser:repopass https://localhost:8443/api/charts
+
 
 ubuntu@ip-172-31-21-52:~/course10_helm_with_kops/mycharts_making_charts/myapp_0.2.0_api21_tar__files_weather_redis/myapp$ ls -la
 total 864
