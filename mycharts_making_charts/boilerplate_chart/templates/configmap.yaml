@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-    name: {{ include "mywebstarter.fullname" . }}
+    name: {{ include "boilerplate_chart.fullname" . }}
     labels:
-        {{- include "mywebstarter.labels" . | nindent 4 }}
+        {{- include "boilderplate_chart.labels" . | nindent 4 }}
 data:
     index.html: |
         <html>
