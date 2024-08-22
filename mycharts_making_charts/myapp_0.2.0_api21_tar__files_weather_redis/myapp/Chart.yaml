@@ -77,4 +77,5 @@ type: application
 # 0.2.4 adding to NOTES.txt and then push to chartmuseum as a new tgz
 # 0.2.5 test out the .helmignore file for creation of new chart tgz and then push to chartmuseum
 # 0.2.6 test out adding to chartmuseum repo new tgz
-version: 0.2.6
+# 0.2.7 chart version upgrade testing
+version: 0.2.7
