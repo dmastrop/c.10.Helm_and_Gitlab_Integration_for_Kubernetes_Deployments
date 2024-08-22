@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: blue
+data:
+  index.html: |
+    <html>
+      <head>
+        <title>Blue</title>
+      <head>
+      <body>
+        <h1 style="color: blue">Blue</h1>
+      </body>
+    </html>
