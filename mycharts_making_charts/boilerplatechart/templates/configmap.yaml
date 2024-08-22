@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: {{ include "boilerplatechart.fullname" . }}
+    labels:
+        {{- include "boilerplatechart.labels" . | nindent 4 }}
+data:
+    index.html: |
+        <html>
+            <title>Home Page</title>
+            <body>
+                <h1>This is the home page</h1>
+            </body>
+        </html>
+    about.html: |
+        <html>
+            <title>This is the about page</title>
+            <body>
+                <h1>This is the about page</h1>
+            </body>
+        </html>
