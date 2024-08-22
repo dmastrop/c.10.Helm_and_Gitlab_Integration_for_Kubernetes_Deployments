@@ -1,5 +1,6 @@
 apiVersion: apps/v1
 kind: Deployment
+# need to make deployment name unique so add -green to the hame
 metadata:
   name: {{ include "advanced-deployments.fullname" . }}-green
   labels:
@@ -11,6 +12,7 @@ spec:
   selector:
     matchLabels:
       {{- include "advanced-deployments.selectorLabels" . | nindent 6 }}
+      # add app: green
       app: green
   template:
     metadata:
@@ -20,6 +22,7 @@ spec:
       {{- end }}
       labels:
         {{- include "advanced-deployments.selectorLabels" . | nindent 8 }}
+        # add app: green to the labels to differentiate it from the blue deployment
         app: green
     spec:
       {{- with .Values.imagePullSecrets }}
@@ -35,6 +38,7 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          # create a green-vol for the configmap for the green deployment
           volumeMounts:
             - name: green-vol
               mountPath: /usr/share/nginx/html/index.html
@@ -65,6 +69,7 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      # volume for the green-vol volumeMount above
       volumes:
         - name: green-vol
           configMap:

@@ -11,6 +11,7 @@ spec:
       targetPort: http
       protocol: TCP
       name: http
+  # the selector to redirect traffic to the blue or green will use the .Values.currentTarget variable below
   selector:
     {{- include "advanced-deployments.selectorLabels" . | nindent 4 }}
     {{ toYaml .Values.currentTarget | nindent 4 }}

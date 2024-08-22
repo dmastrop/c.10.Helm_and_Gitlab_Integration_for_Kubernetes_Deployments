@@ -3,6 +3,7 @@
 # Declare variables to be passed into your templates.
 
 replicaCount: 1
+# the currnt target is set here
 currentTarget:
   app: blue
 
@@ -39,6 +40,8 @@ securityContext: {}
   # runAsUser: 1000
 
 service:
+# the service type needs to be LoadBalancer as the currentTarget will redirect traffic to different target deployment
+# when it is switched from blue to green or green to blue
   type: LoadBalancer
   port: 80
 
