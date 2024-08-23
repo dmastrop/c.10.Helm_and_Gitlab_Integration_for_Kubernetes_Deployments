@@ -43,7 +43,7 @@ spec:
                 name: {{ .Release.Name }}
           ports:
             - name: http
-            # change port to 5000
+            # change port to 5000 for the weather microservice
               containerPort: 5000
               protocol: TCP
           livenessProbe:
