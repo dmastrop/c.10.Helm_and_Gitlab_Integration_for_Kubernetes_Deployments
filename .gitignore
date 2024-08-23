@@ -7,3 +7,6 @@ key.pem
 cert*.pem
 key*.pem
 /Users/davemastropolo/workspace/prod/coursez_10_HELM_with_kops_on_EC2_controller/mycharts_making_charts/myapp_0.2.0_api21_tar__files_weather_redis/tar_files/myapp/templates/secret.yaml
+/Users/davemastropolo/workspace/prod/coursez_10_HELM_with_kops_on_EC2_controller/mycharts_making_charts/myapp_0.2.0_api21_tar__files_weather_redis/myapp/templates/secret.yaml
+
+
