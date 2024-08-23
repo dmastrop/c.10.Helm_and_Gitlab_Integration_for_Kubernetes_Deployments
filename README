@@ -21,6 +21,8 @@ Chart.yaml file:
  0.2.4 chartmuseum with additions to the NOTES.txt
  0.2.5 testing upgrade of chart and push to chartmuseum docker 8443 repo
  0.2.6 more testing upgrade
+ 0.2.7
+ 0.2.8
 
 
 

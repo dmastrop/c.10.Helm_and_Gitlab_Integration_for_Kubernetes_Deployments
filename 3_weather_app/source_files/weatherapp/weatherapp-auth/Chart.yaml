@@ -21,13 +21,16 @@ version: 0.1.0
 # incremented each time you make changes to the application. Versions are not expected to
 # follow Semantic Versioning. They should reflect the version the application is using.
 # It is recommended to use it with quotes.
-appVersion: "0.0.3"
-# my docker images are tagged with 0.0.3
+#appVersion: "0.0.3"
+
+appVersion: "0.0.1"
+# for course 10 the images are tagged with 0.0.1
 
 # this is a dependency chart, created whenever the auth chart is run.  This is for the mysql instance.
 # The name "mysql" will be used to refer to this child chart from the parent auth chart.
 dependencies:
   - name: mysql
+  # the name mysql will be referenced in the deployment.yaml file when we define the env vars.
     #version: 8.8.14
     version: 11.1.3
     # latest at the time of recording but may need to update this. Latest is now 11.1.3

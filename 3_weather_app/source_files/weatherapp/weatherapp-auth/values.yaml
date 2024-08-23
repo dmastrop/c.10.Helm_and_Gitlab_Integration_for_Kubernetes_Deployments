@@ -7,8 +7,9 @@ replicaCount: 2
 
 image:
   #repository: afakharany/weatherapp-auth
-  repository: dave123456789/weatherapp-auth
-  # the tag will be appVersion in the Charts.yaml which is 0.0.3 for now.
+  repository: dave123456789/weatherapp-auth2
+  # the tag will be appVersion in the Chart.yaml which is 0.0.1 for now.
+  # the tag is alwsy from the Chart.yaml file and should not be indiected here.
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
