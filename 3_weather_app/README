@@ -1,0 +1,743 @@
+# c.3. Full stack weather app docker deployment onto local EC2 controller and then onto kops k8s cluster with HELM
+
+
+## PREREQUISITES:
+
+
+### NOTE: I am using an ubuntu 22 EC2 instance for all of this. The instance is running docker engine, kubectl, kops, kudo, kustomize, awscli2, helm and a jenkins_slave node (from another setup)
+The instance name is in us-east-2: course3_kops_from_course8_project14_kops_snapshot t3.small
+Due to disk space issues with docker engine increased volume size from 8GB to 16GB
+
+### NOTE: there are 2 folders source_files and weaatherapp. Weatherapp is a direct clone and the source_files are from a zip of the repo. Both have latest source code for thie project.
+
+### NOTE: For docker engine add ubuntu user to the docker group and execute all commands below as ubuntu user. Otherwise there will be docker build issues.
+
+sudo usermod -aG docker ubuntu
+
+
+### AWS configure list (for kops administration of the k8s cluster)
+
+ubuntu@ip-172-31-21-52:~/course3_projects/3_weather_app/source_files/weatherapp/weather$ aws configure list
+      Name                    Value             Type    Location
+      ----                    -----             ----    --------
+   profile                <not set>             None    None
+access_key     **************** shared-credentials-file    
+secret_key     **************** shared-credentials-file    
+    region                us-east-1      config-file    ~/.aws/config
+
+
+
+
+
+
+
+
+
+
+# STAGE1: Deploying the microservices locally and manually with docker commands.
+
+## auth microservice (golang)
+
+This requires a mysql backend container as well to hook into to carrry the user database entries
+docker run -d -p 3306:3306 -e MYSQL_ROOT_PASSWORD=my-secret-pw mysql
+
+Build the golang docker image from source code 
+
+docker build -t auth:0.0.1 .
+
+docker run -d -p 8080:8080 -e DB_HOST=172.17.0.1 -e DB_PASSWORD=my-secret-pw auth:0.0.1
+
+
+### Dockerfile
+
+#build stage
+FROM golang:alpine AS builder
+RUN apk add git
+WORKDIR /go/src/app
+RUN git clone https://github.com/abohmeed/weatherapp
+WORKDIR /go/src/app/weatherapp/auth/src/main
+RUN go build -o /go/bin/app -v ./...
+
+#final stage
+FROM alpine:latest
+RUN apk --no-cache add ca-certificates
+COPY --from=builder /go/bin/app /app
+ENTRYPOINT /app
+LABEL Name=auth Version=0.0.1
+EXPOSE 8080
+
+
+
+create a new user to test this out
+curl -XPOST -d '{"user_name":"ahmed","user_password":"mypass"}' localhost:8080/users
+
+
+
+Login with name
+curl -XPOST -d '{"user_name":"ahmed","user_password":"mypass"}' localhost:8080/users/ahmed
+
+output is the token so that the user can authenticate into the portal UI
+{"JWT":"token**********************"}
+
+
+
+
+
+
+
+
+## UI microservice (node.js javascript)
+
+docker build -t ui:0.0.1 .
+
+docker run -p 3000:3000 -d -e AUTH_HOST=172.17.0.1 -e AUTH_PORT=8080 ui:0.0.1
+Note the hook into the auth microservice defined above. That container needs to be running.
+
+
+
+
+Add a Security Group for TCP:3000 on public interface so that can test this out.
+There is a login page and the credentials defined above can be used to log in.
+
+The backend weather app and api hook are not configured yet. We need to get the weather container up and running.
+
+
+
+### Dockerfile
+
+FROM node:17
+WORKDIR /usr/src/app
+COPY package*.json ./
+RUN npm install<<< reads package.json and installs dependencies
+COPY . .
+EXPOSE 3000
+ENTRYPOINT ["node"]
+CMD [ "app.js" ]
+
+
+
+
+
+
+
+
+
+
+
+
+## weather app api (python/flask)
+
+docker build -t weather:0.0.1 .
+
+Subscribe to the realtime weather app on Weatherapi.com and get the api token that will hook into the weather app docker container so that the container can communicate with the real time weather app via the api.
+
+docker run -p 5000:5000 -d -e APIKEY=6eafbb0c45msh451df8302c291f2p1e0a35jsnf98732edea29 weather:0.0.1
+
+use the APIKEY from weatherapi.com (see above) for real time weather stats
+
+### requirements.txt python dependencies
+
+Need to have the following for flask and Werkzeug
+
+Flask==2.0.2
+Flask_Cors==3.0.10
+requests==2.26.0
+Werkzeug==2.2.2
+
+
+
+### Dockerfile
+
+FROM python:3.8-slim-buster
+WORKDIR /app
+COPY requirements.txt requirements.txt <<<< similar to package.json in node.js that installs dependencies
+RUN pip3 install -r requirements.txt <<< pip3 is python pkg manager
+COPY . .
+EXPOSE 5000
+ENTRYPOINT ["python3"]
+CMD [ "/app/main.py" ]
+
+
+### main.py python code
+
+from flask import Flask, jsonify
+from flask_cors import CORS
+import requests
+import os
+
+app = Flask(__name__)
+CORS(app)
+
+@app.route("/")
+def health():
+    return "The service is running", 200
+
+@app.route('/<city>')
+def hello(city):
+    url = "https://weatherapi-com.p.rapidapi.com/current.json"
+    querystring = {"q":city}
+    headers = {
+        'x-rapidapi-host': "weatherapi-com.p.rapidapi.com",
+        'x-rapidapi-key': os.getenv("APIKEY")
+    }
+    response = requests.request("GET", url, headers=headers, params=querystring)
+    return jsonify(response.text)
+
+if __name__ == '__main__':
+    app.run(host="0.0.0.0")
+
+
+
+
+
+## Current docker container state
+
+
+ubuntu@ip-172-31-21-52:~/course3_projects/3_weather_app/source_files/weatherapp/weather$ docker ps
+CONTAINER ID   IMAGE           COMMAND                  CREATED          STATUS          PORTS                                                  NAMES
+56f78337d73a   weather:0.0.1   "python3 /app/main.py"   18 minutes ago   Up 18 minutes   0.0.0.0:5000->5000/tcp, :::5000->5000/tcp              relaxed_varahamihira
+bb8a1e35c731   ui:0.0.1        "node app.js"            2 hours ago      Up 2 hours      0.0.0.0:3000->3000/tcp, :::3000->3000/tcp              reverent_carson
+cc86edf44521   auth:0.0.2      "/bin/sh -c /app"        2 hours ago      Up 2 hours      0.0.0.0:8080->8080/tcp, :::8080->8080/tcp              amazing_clarke
+8a678dc804f8   mysql           "docker-entrypoint.s…"   3 hours ago      Up 3 hours      0.0.0.0:3306->3306/tcp, :::3306->3306/tcp, 33060/tcp   laughing_goldstine
+
+
+
+## Need to remove the current node app.js UI container and start a new one that has the hook into the weather app now running on port 5000
+
+ubuntu@ip-172-31-21-52:~/course3_projects/3_weather_app/source_files/weatherapp/weather$ docker rm -f bb8a1e35c731
+bb8a1e35c731
+ubuntu@ip-172-31-21-52:~/course3_projects/3_weather_app/source_files/weatherapp/weather$ docker ps
+CONTAINER ID   IMAGE           COMMAND                  CREATED          STATUS          PORTS                                                  NAMES
+56f78337d73a   weather:0.0.1   "python3 /app/main.py"   47 minutes ago   Up 47 minutes   0.0.0.0:5000->5000/tcp, :::5000->5000/tcp              relaxed_varahamihira
+cc86edf44521   auth:0.0.2      "/bin/sh -c /app"        3 hours ago      Up 3 hours      0.0.0.0:8080->8080/tcp, :::8080->8080/tcp              amazing_clarke
+8a678dc804f8   mysql           "docker-entrypoint.s…"   3 hours ago      Up 3 hours      0.0.0.0:3306->3306/tcp, :::3306->3306/tcp, 33060/tcp   laughing_goldstine
+
+
+### add the new UI docker container that hooks into the weather app
+
+docker run -p 3000:3000 -d -e AUTH_HOST=172.17.0.1 -e AUTH_PORT=8080 -e WEATHER_HOST=172.17.0.1 -e WEATHER_PORT=5000 ui:0.0.1
+
+
+ubuntu@ip-172-31-21-52:~/course3_projects/3_weather_app/source_files/weatherapp/weather$ docker run -p 3000:3000 -d -e AUTH_HOST=172.17.0.1 -e AUTH_PORT=8080 -e WEATHER_HOST=172.17.0.1 -e WEATHER_PORT=5000 ui:0.0.1
+a45b1c1b62a30b36180a9e0ad0d2d98b0bce7d9e8478eb54f64801e446406cc0
+
+
+ubuntu@ip-172-31-21-52:~/course3_projects/3_weather_app/source_files/weatherapp/weather$ docker ps
+CONTAINER ID   IMAGE           COMMAND                  CREATED          STATUS          PORTS                                                  NAMES
+a45b1c1b62a3   ui:0.0.1        "node app.js"            3 seconds ago    Up 2 seconds    0.0.0.0:3000->3000/tcp, :::3000->3000/tcp              objective_lehmann
+56f78337d73a   weather:0.0.1   "python3 /app/main.py"   51 minutes ago   Up 51 minutes   0.0.0.0:5000->5000/tcp, :::5000->5000/tcp              relaxed_varahamihira
+cc86edf44521   auth:0.0.2      "/bin/sh -c /app"        3 hours ago      Up 3 hours      0.0.0.0:8080->8080/tcp, :::8080->8080/tcp              amazing_clarke
+8a678dc804f8   mysql           "docker-entrypoint.s…"   3 hours ago      Up 3 hours      0.0.0.0:3306->3306/tcp, :::3306->3306/tcp, 33060/tcp   laughing_goldstine
+
+
+
+
+## Refresh the browser page (ahmed/mypass)
+
+With the login we should be able to see the weather stats.  Note that this is runningl locally on the EC2 controller.  Next stage is to migrate this to the kops cluster
+
+
+
+## PROPER SEQUENCE FROM FRESH STATE: the weather app should be started last as that requires the other apps to bu up. This will be simplified in STAGE2 deployment with docker compose v2.
+
+Start mysql container
+
+docker run -d -p 3306:3306 -e MYSQL_ROOT_PASSWORD=my-secret-pw mysql
+
+Start auth
+
+docker run -d -p 8080:8080 -e DB_HOST=172.17.0.1 -e DB_PASSWORD=my-secret-pw auth:0.0.1
+
+
+Create user ahmed/mypass
+
+curl -XPOST -d '{"user_name":"ahmed","user_password":"mypass"}' localhost:8080/users
+{"success":"User added successfully"}
+
+
+
+curl -XPOST -d '{"user_name":"ahmed","user_password":"mypass"}' localhost:8080/users/ahmed
+
+{"JWT":"token******"}
+
+Start weather
+
+docker run -p 5000:5000 -d -e APIKEY=6eafbb0c45msh451df8302c291f2p1e0a35jsnf98732edea29 weather:0.0.1
+
+
+Start ui after weather has been started
+
+docker run -p 3000:3000 -d -e AUTH_HOST=172.17.0.1 -e AUTH_PORT=8080 -e WEATHER_HOST=172.17.0.1 -e WEATHER_PORT=5000 ui:0.0.1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# STAGE2: docker-compose.yaml to orchestrate the docker stack deployment of the same microservices
+
+
+## docker-compose.yaml
+
+version: "3.9"
+services:
+  auth:
+    restart: always
+    build: ./auth
+    # build all microservices from scratch. The mysql below is from dockerhub
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db
+      DB_PASSWORD: my-secret-pw
+    networks:
+    # we can no longer use the default docker bridge local network 172. app-net is a docker network that allows
+    # all the containers to talk to each other via flat bridge.
+      - app-net
+  ui:
+    restart: always
+    build: ./UI
+    depends_on:
+    # UI is dependent on both the auth and weather containers being up and running
+      - auth
+      - weather
+    environment:
+      AUTH_HOST: auth
+      AUTH_PORT: 8080
+      WEATHER_HOST: weather
+      WEATHER_PORT: 5000
+    ports:
+    # these ports need to be exposed to client outside world
+      - "3000:3000"
+    networks:
+      - app-net
+  weather:
+    restart: always
+    build: ./weather
+    environment:
+      #APIKEY: ecbc396f46mshb65cbb1f82cf334p1fcc87jsna5e962a3c542
+      APIKEY: 6eafbb0c45msh451df8302c291f2p1e0a35jsnf98732edea29
+    networks:
+      - app-net
+  db:
+    restart: always
+    image: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: my-secret-pw
+    networks:
+      - app-net
+    volumes:
+      - ./db-data:/var/lib/mysql
+
+networks:
+  app-net:
+    driver: bridge
+volumes:
+  db-data:
+
+
+
+## issue with docker 7.0 (latest) and docker-compose v1.  Must use docker compose v2
+
+If you are running latest docker 7.0, it is no longer compatible with python based docker-compose (v1)
+you will see an error like this when trying to run this project:
+
+
+ubuntu@ip-172-31-21-52:~/course3_projects/3_weather_app/source_files/weatherapp$ docker-compose up -d
+Traceback (most recent call last):
+File "/usr/local/bin/docker-compose", line 8, in <module>
+sys.exit(main())
+File "/usr/local/lib/python3.10/dist-packages/compose/cli/main.py", line 81, in main
+command_func()
+File "/usr/local/lib/python3.10/dist-packages/compose/cli/main.py", line 200, in perform_command
+project = project_from_options('.', options)
+File "/usr/local/lib/python3.10/dist-packages/compose/cli/command.py", line 60, in project_from_options
+return get_project(
+File "/usr/local/lib/python3.10/dist-packages/compose/cli/command.py", line 152, in get_project
+client = get_client(
+File "/usr/local/lib/python3.10/dist-packages/compose/cli/docker_client.py", line 41, in get_client
+client = docker_client(
+File "/usr/local/lib/python3.10/dist-packages/compose/cli/docker_client.py", line 124, in docker_client
+kwargs = kwargs_from_env(environment=environment, ssl_version=tls_version)
+TypeError: kwargs_from_env() got an unexpected keyword argument 'ssl_version'
+
+
+
+docker-compose version
+docker-compose version 1.29.2, build unknown
+docker-py version: <module 'docker.version' from '/usr/local/lib/python3.10/dist-packages/docker/version.py'>
+CPython version: 3.10.12
+OpenSSL version: OpenSSL 3.0.2 15 Mar 2022
+
+
+Reason for this is at this link
+https://stackoverflow.com/questions/77641240/getting-docker-compose-typeerror-kwargs-from-env-got-an-unexpected-keyword-ar
+Docker1 has made a change in v7.0.0 that breaks Docker Compose v1 written in Python (pip install docker-compose available as docker-compose). It has been deprecated and replaced by Docker Compose v2 implemented in Go which comes OOB as docker compose (sub-command).
+Permanent fix: Switch to Docker Compose v2 (no extra installation required, read the migration docs to fix compatibility issues). Docker Compose v2 switch is totally worth, btw; it is a near implementation.
+
+Temporary fix: Downgrade Docker1 using pip install docker==6.1.3 to the version that works with Docker Compose (v1).
+
+
+
+
+## Docker compose v2 installation
+
+to install docker compose v2 (note docker compose is v2 and docker-compose is v1; hyphenated)
+https://docs.docker.com/compose/migrate/
+
+for ubuntu
+
+set up docker apt repository
+
+
+
+Add Docker's official GPG key:
+
+sudo apt-get update
+sudo apt-get install ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+Add the repository to Apt sources:
+
+echo \
+"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+$(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+
+Install the plugin
+
+sudo apt-get update
+sudo apt-get install docker-compose-plugin
+
+
+docker compose version
+Docker Compose version v2.27.1
+
+
+
+## docker compose commands
+
+Run these commands in the root folder with docker-compose.yaml file in it
+
+docker compose up -d
+docker compose logs -g
+docker compose down
+
+
+
+
+ docker ps
+CONTAINER ID   IMAGE                COMMAND                  CREATED       STATUS       PORTS                                       NAMES
+03454c612b98   weatherapp-ui        "node app.js"            3 hours ago   Up 3 hours   0.0.0.0:3000->3000/tcp, :::3000->3000/tcp   weatherapp-ui-1
+d9b154dd48fe   weatherapp-auth      "/bin/sh -c /app"        3 hours ago   Up 3 hours   8080/tcp                                    weatherapp-auth-1
+b78bca7d354d   weatherapp-weather   "python3 /app/main.py"   3 hours ago   Up 3 hours   5000/tcp                                    weatherapp-weather-1
+9a24ea332a70   mysql                "docker-entrypoint.s…"   3 hours ago   Up 3 hours   3306/tcp, 33060/tcp                         weatherapp-db-1
+
+
+ docker compose down
+WARN[0000] /home/ubuntu/course3_projects/3_weather_app/source_files/weatherapp/docker-compose.yaml: `version` is obsolete 
+[+] Running 5/5
+ ✔ Container weatherapp-ui-1       Removed                                                                                    10.4s 
+ ✔ Container weatherapp-auth-1     Removed                                                                                     0.3s 
+ ✔ Container weatherapp-weather-1  Removed                                                                                    10.3s 
+ ✔ Container weatherapp-db-1       Removed                                                                                     1.8s 
+ ✔ Network weatherapp_app-net      Removed                                                                                     0.3s 
+
+
+## persistent storage for the mysql login credential data
+
+NOTE: the volume is stored in the local folder on the EC2 ubuntu controller instance in the db-data folder
+
+    volumes:
+      - ./db-data:/var/lib/mysql
+
+added this to the .gitignore (the entire db-data folder) so that the senstive data is not pushed to github repo.
+The entire folder is mapped to the mysql instance when it is instanatiated 
+I tested this with a user created yesterday after a complete shutdown of this ubuntu controller instance.
+Started the containers up again and the same user was there.
+
+The volume mount/binding on the mysql container can be seen with the command below
+The local db-data folder is mapped to the /var/lib/mysql on the  mysql db docker instance
+
+ubuntu@ip-172-31-21-52:~/course3_projects/3_weather_app/source_files/weatherapp$ docker ps
+CONTAINER ID   IMAGE                COMMAND                  CREATED          STATUS          PORTS                                       NAMES
+f3ca08bb8003   weatherapp-ui        "node app.js"            59 minutes ago   Up 59 minutes   0.0.0.0:3000->3000/tcp, :::3000->3000/tcp   weatherapp-ui-1
+a3344c796303   weatherapp-auth      "/bin/sh -c /app"        59 minutes ago   Up 59 minutes   8080/tcp                                    weatherapp-auth-1
+d779276e9f01   mysql                "docker-entrypoint.s…"   59 minutes ago   Up 59 minutes   3306/tcp, 33060/tcp                         weatherapp-db-1
+71c13584b35d   weatherapp-weather   "python3 /app/main.py"   59 minutes ago   Up 59 minutes   5000/tcp                                    weatherapp-weather-1
+
+
+ docker inspect -f '{{ .Mounts }}' d779276e9f01
+
+[{bind  /home/ubuntu/course3_projects/3_weather_app/source_files/weatherapp/db-data /var/lib/mysql  rw true rprivate}]
+
+
+
+## docker image ls
+
+docker image ls
+REPOSITORY           TAG       IMAGE ID       CREATED        SIZE
+weatherapp-ui        latest    bf1c2c40db22   26 hours ago   1e+03MB
+weatherapp-weather   latest    dc23087b0d4a   2 days ago     132MB
+weather              0.0.1     0f19773fcfb8   2 days ago     132MB
+<none>               <none>    62cff668aa0d   2 days ago     132MB
+ui                   0.0.1     bec6e49c6e5c   2 days ago     1e+03MB
+weatherapp-auth      latest    1bcb4f0ff7ae   3 days ago     18.9MB
+auth                 0.0.1     2dfc90fcbb13   3 days ago     18.9MB
+auth                 0.0.2     2dfc90fcbb13   3 days ago     18.9MB
+mysql                latest    fcd86ff8ce8c   6 weeks ago    578MB
+
+
+
+docker history fcd86ff8ce8c
+IMAGE          CREATED       CREATED BY                                      SIZE      COMMENT
+fcd86ff8ce8c   6 weeks ago   CMD ["mysqld"]                                  0B        buildkit.dockerfile.v0
+<missing>      6 weeks ago   EXPOSE map[3306/tcp:{} 33060/tcp:{}]            0B        buildkit.dockerfile.v0
+<missing>      6 weeks ago   ENTRYPOINT ["docker-entrypoint.sh"]             0B        buildkit.dockerfile.v0
+<missing>      6 weeks ago   COPY docker-entrypoint.sh /usr/local/bin/ # …   13.5kB    buildkit.dockerfile.v0
+<missing>      6 weeks ago   VOLUME [/var/lib/mysql]                         0B        buildkit.dockerfile.v0
+<missing>      6 weeks ago   RUN /bin/sh -c set -eux;  microdnf install -…   307MB     buildkit.dockerfile.v0
+<missing>      6 weeks ago   ENV MYSQL_SHELL_VERSION=8.4.0-1.el9             0B        buildkit.dockerfile.v0
+<missing>      6 weeks ago   RUN /bin/sh -c set -eu;  {   echo '[mysql-to…   219B      buildkit.dockerfile.v0
+<missing>      6 weeks ago   RUN /bin/sh -c set -eux;  microdnf install -…   140MB     buildkit.dockerfile.v0
+<missing>      6 weeks ago   RUN /bin/sh -c set -eu;  {   echo '[mysql8.4…   225B      buildkit.dockerfile.v0
+<missing>      6 weeks ago   ENV MYSQL_VERSION=8.4.0-1.el9                   0B        buildkit.dockerfile.v0
+<missing>      6 weeks ago   ENV MYSQL_MAJOR=8.4                             0B        buildkit.dockerfile.v0
+<missing>      6 weeks ago   RUN /bin/sh -c set -eux;  key='BCA4 3417 C3B…   3.17kB    buildkit.dockerfile.v0
+<missing>      6 weeks ago   RUN /bin/sh -c set -eux;  microdnf install -…   16.5MB    buildkit.dockerfile.v0
+<missing>      6 weeks ago   RUN /bin/sh -c set -eux;  arch="$(uname -m)"…   2.36MB    buildkit.dockerfile.v0
+<missing>      6 weeks ago   ENV GOSU_VERSION=1.17                           0B        buildkit.dockerfile.v0
+<missing>      6 weeks ago   RUN /bin/sh -c set -eux;  groupadd --system …   2.77kB    buildkit.dockerfile.v0
+<missing>      6 weeks ago   /bin/sh -c #(nop)  CMD ["/bin/bash"]            0B        
+<missing>      6 weeks ago   /bin/sh -c #(nop) ADD file:aa0e8a24fb10efad1…   112MB
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# STAGE3: Full stack weather app docker deployment onto kops cluster using HELM
+
+
+## Create docker hub images for the deployment to the kops k8s cluster
+
+docker build -t dave123456789/weatherapp-auth:0.0.3 ./auth
+docker build -t dave123456789/weatherapp-ui:0.0.3 ./UI
+docker build -t dave123456789/weatherapp-weather:0.0.3 /weather
+
+All from source code.   auth is in golang, UI is in node.js javascript and weather is in python. See STAGE1 and 2 above.
+
+
+
+## Push the images to dave123456789 docker account
+
+
+docker push dave123456789/weatherapp-auth:0.0.3
+docker push dave123456789/weatherapp-ui:0.0.3
+docker push dave123456789/weatherapp-weather:0.0.3
+
+
+
+
+
+
+## Weatherapp-auth helm chart
+
+helm create weatherapp-auth
+
+modify the Chart.yaml, the values.yaml and the templates/deployment.yaml
+
+### mysql must be available to the auth microserver. Create a dependency chart in weatherapp-auth folder
+
+Need to upgrade to latest code in Chart.yaml,  as the older code is not available at bitnami
+
+dependencies:
+  - name: mysql
+    #version: 8.8.14
+    version: 11.1.3
+    # latest at the time of recording but may need to update this. Latest is now 11.1.3
+    # re-run the "helm dependency build" and remove the Charts.lock file and move charts folder to backup. A new
+    # charts folder will be created.
+    repository: https://charts.bitnami.com/bitnami
+
+Run: helm dependency build in the weatherapp-auth folder
+This creates a chart subdiretory that has the mysql child dependency chart tar file.
+
+
+### Push the code to github and pull to the helm EC2 controller and deploy the chart to the kops cluster
+
+helm upgrade --install weatherapp-auth --set mysql.auth.rootPassword=******** .
+
+
+
+
+
+## Weatherapp-weather helm chart
+
+helm create weatherapp-weather
+
+modify the Chart.yaml, the values.yaml and the templates/deployment.yaml
+
+
+### For weatherapp-weather need an APIKEY to hook into the backend weather API service
+
+service.yaml file:
+
+apiVersion: v1
+kind: Secret
+metadata:
+    name: {{ .Release.Name }}
+type: Opaque
+data:
+    apikey: {{ .Values.apikey | b64enc | quote }}
+    # the value will be from the command line with the --set flag. Putting it in values.yaml is insecure.
+
+
+
+### in deployment.yaml add the following env
+
+env:
+          - name: APIKEY
+            valueFrom:
+              secretKeyRef:
+                key: apikey
+                name: {{ .Release.Name }}
+
+### Push the code to github and pull to the helm EC2 controller and deploy the chart to the kops cluster
+
+helm upgrade --install weatherapp-weather --set apikey=******************************* .
+
+
+
+
+
+
+
+## Weatherapp-ui helm chart:
+
+helm create weatherapp-ui
+
+modify the Chart.yaml, the values.yaml and the templates/deployment.yaml
+
+
+### in deployment.yaml add the following env vars
+
+
+env:
+          - name: AUTH_HOST
+            value: weatherapp-auth
+          - name: AUTH_PORT
+            value: "8080"
+          - name: WEATHER_HOST
+            value: weatherapp-weather
+          - name: WEATHER_PORT
+            value: "5000"
+
+
+### Push the code to github and pull to the helm EC2 controller and deploy the chart to the kops cluster
+
+helm upgrade --install weatherapp-ui .
+
+
+
+
+
+## Verify the deployment of the pods to the running kops cluster
+
+
+ubuntu@ip-172-31-21-52:~/course3_projects/3_weather_app/source_files/weatherapp/weatherapp-ui$ kubectl get pods
+NAME                                  READY   STATUS    RESTARTS      AGE
+weatherapp-auth-76c8df5d6b-m466k      1/1     Running   2 (85m ago)   86m
+weatherapp-auth-76c8df5d6b-xmpbv      1/1     Running   2 (85m ago)   86m
+weatherapp-auth-mysql-0               1/1     Running   0             86m
+weatherapp-ui-5bd8dcc685-456c9        1/1     Running   0             102s
+weatherapp-ui-5bd8dcc685-s44k6        1/1     Running   0             102s
+weatherapp-weather-77b797b646-g7q4b   1/1     Running   0             25m
+weatherapp-weather-77b797b646-j86km   1/1     Running   0             25m
+
+
+ubuntu@ip-172-31-21-52:~/course3_projects/3_weather_app/source_files/weatherapp/weatherapp-ui$ kubectl get service
+NAME                             TYPE           CLUSTER-IP       EXTERNAL-IP                                                               PORT(S)        AGE
+kubernetes                       ClusterIP      100.64.0.1       <none>                                                                    443/TCP        99m
+weatherapp-auth                  ClusterIP      100.68.161.113   <none>                                                                    8080/TCP       89m
+weatherapp-auth-mysql            ClusterIP      100.65.199.226   <none>                                                                    3306/TCP       89m
+weatherapp-auth-mysql-headless   ClusterIP      None             <none>                                                                    3306/TCP       89m
+weatherapp-ui                    LoadBalancer   100.64.88.160    ae00b7bba32494df88c371a785487f27-1726828820.us-east-1.elb.amazonaws.com   80:30088/TCP   4m44s
+weatherapp-weather               ClusterIP      100.64.122.48    <none>                                                                    5000/TCP       45m
+
+
+
+### the loadbalancer can be tested by going to the loadbalancer URL above
+
+
+
+
+
+## take down the setup with helm uninstall
+
+ubuntu@ip-172-31-21-52:~/course3_projects/3_weather_app/source_files/weatherapp/weatherapp-ui$ helm history weatherapp-auth
+REVISION        UPDATED                         STATUS          CHART                   APP VERSION     DESCRIPTION     
+1               Mon Jun 17 22:43:23 2024        deployed        weatherapp-auth-0.1.0   0.0.3           Install complete
+ubuntu@ip-172-31-21-52:~/course3_projects/3_weather_app/source_files/weatherapp/weatherapp-ui$ helm history weatherapp-ui
+REVISION        UPDATED                         STATUS          CHART                   APP VERSION     DESCRIPTION     
+1               Tue Jun 18 00:08:14 2024        deployed        weatherapp-ui-0.1.0     0.0.3           Install complete
+ubuntu@ip-172-31-21-52:~/course3_projects/3_weather_app/source_files/weatherapp/weatherapp-ui$ helm history weatherapp-weather
+REVISION        UPDATED                         STATUS          CHART                           APP VERSION     DESCRIPTION     
+1               Mon Jun 17 23:27:24 2024        superseded      weatherapp-weather-0.1.0        0.0.3           Install complete
+2               Mon Jun 17 23:43:58 2024        deployed        weatherapp-weather-0.1.0        0.0.3           Upgrade complete
+
+
+
+helm uninstall weatherapp-auth
+
+helm uninstall weatherapp-ui
+
+helm uninstall weatherapp-weather
+
+### manually delete the PVC (this removes the mysql PVC and PV)
+
+ubuntu@ip-172-31-21-52:~/course3_projects/3_weather_app/source_files/weatherapp/weatherapp-ui$ kubectl get pv
+NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM                                  STORAGECLASS    REASON   AGE
+pvc-7dfef7b4-b2bd-404f-8995-59668d9351e6   8Gi        RWO            Delete           Bound    default/data-weatherapp-auth-mysql-0   kops-csi-1-21            104m
+ubuntu@ip-172-31-21-52:~/course3_projects/3_weather_app/source_files/weatherapp/weatherapp-ui$ kubectl get pvc
+NAME                           STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS    AGE
+data-weatherapp-auth-mysql-0   Bound    pvc-7dfef7b4-b2bd-404f-8995-59668d9351e6   8Gi        RWO            kops-csi-1-21   104m
+
+
+ubuntu@ip-172-31-21-52:~/course3_projects/3_weather_app/source_files/weatherapp/weatherapp-ui$ kubectl get pv
+No resources found
+ubuntu@ip-172-31-21-52:~/course3_projects/3_weather_app/source_files/weatherapp/weatherapp-ui$ kubectl get pvc
+No resources found in default namespace.
+
+
+
+
+
+
+.
+
+
+
