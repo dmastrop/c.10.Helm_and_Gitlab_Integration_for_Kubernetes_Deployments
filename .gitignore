@@ -6,6 +6,6 @@ cert.pem
 key.pem
 cert*.pem
 key*.pem
-
+/home/ubuntu/course10_helm_with_kops/mycharts_making_charts/myapp_0.2.0_api21_tar__files_weather_redis/myapp/templates/secret.yaml
 
 
