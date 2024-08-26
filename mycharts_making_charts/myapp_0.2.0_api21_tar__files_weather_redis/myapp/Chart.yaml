@@ -79,4 +79,5 @@ type: application
 # 0.2.6 test out adding to chartmuseum repo new tgz
 # 0.2.7 chart version upgrade testing
 # 0.2.8 chart version upgrade testing
-version: 0.2.8
+# 0.2.9 chart version testing
+version: 0.2.9
