@@ -13,4 +13,6 @@ secret.yaml
 *.csr
 *.key
 gitlab-config
+gitlab*-config
+gitlab2-config
 
